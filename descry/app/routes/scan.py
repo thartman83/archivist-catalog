@@ -42,7 +42,7 @@ def scanDocument():
         try:
             i = scan_iter.next()
             txt = OCRImage(i)
-            dict = { "page": page_num, "data": i.getdata() }
+            dict = { "page": page_num, "data": i.tostring() }
             res.append(dict)
             page_num = page_num + 1
             
