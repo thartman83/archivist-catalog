@@ -24,6 +24,7 @@
 from flask import Blueprint, request, jsonify
 from PIL import Image
 import sane
+import pytesseract
 
 scan_bp = Blueprint('scan', __name__, url_prefix='/scan')
 
@@ -32,10 +33,34 @@ def scanDocument():
     var = sane.init()
     devices = sane.get_devices()
     dev = sane.open(devices[0][0])
-    dev.start()
-    im = dev.snap()
-    im.save('test.png')
+    scan_iter = dev.multi_scan()
 
-    return jsonify(done='true', data=im, status=200)
+    res = []
+    page_num = 1
+
+    while True:
+        try:
+            i = scan_iter.next()
+            txt = OCRImage(i)
+            dict = { "page": page_num, data: i.getdata() }
+            res.insert(dict)
+            page_num = page_num + 1
+            
+        except StopIteration:
+            break
+    
+    return jsonify({ "status" : "done", "pages" : res, "page_count": page_num-1 })
+
+def OCRImage(img):
+    # orient the image properly
+    img = orientImage(img)
+    return pytesseract.image_to_string(img)
+    
+def orientImage(img):
+    osdInfo = pytesseract.image_to_osd(img)
+    parts = tuple(map(lambda x: x.split(': '), pytesseract.split('\n')))
+
+    rotation = int(next(filter(lambda x: x[0] == 'Rotate', parts))[1])
+    return img.rotate(rotation)
     
 ## }}}
