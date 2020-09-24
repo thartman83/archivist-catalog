@@ -43,7 +43,7 @@ def scanDocument():
             i = scan_iter.next()
             txt = OCRImage(i)
             dict = { "page": page_num, "data": i.getdata() }
-            res.insert(dict)
+            res.append(dict)
             page_num = page_num + 1
             
         except StopIteration:
