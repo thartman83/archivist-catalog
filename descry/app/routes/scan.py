@@ -58,7 +58,7 @@ def OCRImage(img):
     
 def orientImage(img):
     osdInfo = pytesseract.image_to_osd(img)
-    parts = tuple(map(lambda x: x.split(': '), pytesseract.split('\n')))
+    parts = tuple(map(lambda x: x.split(': '), osdInfo.split('\n')))
 
     rotation = int(next(filter(lambda x: x[0] == 'Rotate', parts))[1])
     return img.rotate(rotation)
