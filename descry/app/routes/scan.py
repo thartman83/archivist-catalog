@@ -25,6 +25,8 @@ from flask import Blueprint, request, jsonify
 from PIL import Image
 import sane
 import pytesseract
+import base64
+from io import BytesIO
 
 scan_bp = Blueprint('scan', __name__, url_prefix='/scan')
 
@@ -42,8 +44,11 @@ def scanDocument():
         try:
             i = scan_iter.next()
             txt = OCRImage(i)
-            dict = { "page": page_num, "data": i.tobytes().encode('utf-8') }
-            res.append(dict)
+            buf = BytesIO()
+            i.save(buf, format="TIFF")
+            res.append({ "page": page_num,
+                         "data": base64.b64encode(buf.getvalue()),
+                         "text": txt })
             page_num = page_num + 1
             
         except StopIteration:
