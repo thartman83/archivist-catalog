@@ -1,6 +1,6 @@
 ###############################################################################
-## run.py for catalog                                                        ##
-## Copyright (c) 2020 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
+## dbbase.py for catalog models module                                       ##
+## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
 ## modify it under the terms of the GNU General Public License               ##
@@ -16,15 +16,21 @@
 
 ### Commentary ## {{{
 ##
-## Catalog is the record keeping container for the archivist system
+## dbbase is the base object model for catalog models
 ##
 ## }}}
-from app.appfactory import create_app
-from config.config import DevConfig
 
-### run ## {{{
-if __name__ == "__main__":
-    app = create_app(DevConfig)
-    app.run()
-        
+### dbbase ## {{{
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
+from datetime import datetime
+from app import db
+
+class DBBase(db.Model):
+    __abstract__ = True
+    __table_args__ = { "mysql_engine":"InnoDB" }
+    id = db.Column(db.Integer, primary_key=True)
+    datecreated = db.Column(db.DatTime, server_default=func.now())
+    datemodified = db.Column(db.DatTime, server_default=func.now())
+
 ## }}}

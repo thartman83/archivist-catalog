@@ -1,6 +1,6 @@
 ###############################################################################
-## run.py for catalog                                                        ##
-## Copyright (c) 2020 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
+## record.py for catalog models module                                       ##
+## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
 ## modify it under the terms of the GNU General Public License               ##
@@ -16,15 +16,33 @@
 
 ### Commentary ## {{{
 ##
-## Catalog is the record keeping container for the archivist system
+## 
 ##
 ## }}}
-from app.appfactory import create_app
-from config.config import DevConfig
 
-### run ## {{{
-if __name__ == "__main__":
-    app = create_app(DevConfig)
-    app.run()
-        
+### Record ## {{{
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from app import db
+from .dbbase import DBBase
+
+class Record(DBBase):
+    name = db.Column(db.String(100), nullable=False)
+    location = db.Column(db.String(250), nullable=False)
+    size = db.Column(db.Integer, nullable=False)
+    pagecount = db.Column(db.Integer, nullable=False)
+    hash = db.Column(db.String(64), nullable=False)
+    notes = db.Column(db.Text(length=1000))
+
+    def serialize(self):
+        return { "id": self.id,
+                 "name": self.name,
+                 "location": self.location,
+                 "size": self.size,
+                 "pagecount": self.pagecount,
+                 "hash": self.hash,
+                 "datecreate": self.datecreated,
+                 "datemodified": self.datemodified,
+                 "notes": self.notes }
+
 ## }}}
