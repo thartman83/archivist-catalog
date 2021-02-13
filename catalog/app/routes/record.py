@@ -1,6 +1,6 @@
 ###############################################################################
-## config.py for catalog                                                     ##
-## Copyright (c) 2020 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
+## record.py for catalog routes package                                     ##
+## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
 ## modify it under the terms of the GNU General Public License               ##
@@ -20,13 +20,27 @@
 ##
 ## }}}
 
-### config ## {{{
-class Config(object):
-    DEBUG = False
-    TESTING = False
+### record ## {{{
+import base64, hashlib
+from flask import Blueprint, request, jsonify
+from ..models import Record
+from ...config import DevConfig
 
-class DevConfig(Config):
-    portno = 8123
-    host = "127.0.0.1"
-    storage = "./storage"
+record_bp = Blueprint('record', __name__, url_prefix='/record')
+config = DevConfig()
+
+@recipe_bp.route('', methods=['POST'])
+def createRecipe():
+    data = request.json('data')
+    saveFileToStorage(data)
+
+
+def saveFileToStorage(data):
+    decodedData = base64.decodebytes(data)
+    hash = hashlib.md5(decodedData)
+    path = config.storage + "/" + hash
+    with open(path) as fh:
+        fh.write(decodedData)
+
+    return hash, 
 ## }}}
