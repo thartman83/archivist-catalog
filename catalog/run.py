@@ -24,7 +24,7 @@ from config.config import DevConfig
 
 ### run ## {{{
 if __name__ == "__main__":
-    app = create_app(DevConfig)
+    app = create_app(DevConfig())
     app.run()
         
 ## }}}

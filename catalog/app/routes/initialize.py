@@ -1,5 +1,5 @@
 ###############################################################################
-## record.py for catalog models module                                       ##
+## initialize.py for Archivist Catalog Routes                                   ##
 ## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
@@ -20,31 +20,18 @@
 ##
 ## }}}
 
-### Record ## {{{
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+### initialize ## {{{
+
 from ..models.dbbase import db
-from .dbbase import DBBase
+from flask import Blueprint, jsonify, request
 
-class Record(DBBase):
-    name = db.Column(db.String(100), nullable=False)
-    extension = db.Column(db.String(100), nullable=False)
-    location = db.Column(db.String(250), nullable=False)
-    size = db.Column(db.Integer, nullable=False)
-    pagecount = db.Column(db.Integer, nullable=False)
-    hash = db.Column(db.String(64), nullable=False)
-    notes = db.Column(db.Text(length=1000))
+init_bp = Blueprint('init', __name__, url_prefix='/init')
 
-    def serialize(self):
-        return { "id": self.id,
-                 "name": self.name,
-                 "extension": self.extension,
-                 "location": self.location,
-                 "size": self.size,
-                 "pagecount": self.pagecount,
-                 "hash": self.hash,
-                 "datecreate": self.datecreated,
-                 "datemodified": self.datemodified,
-                 "notes": self.notes }
+@init_bp.route('', methods=['POST','GET'])
+def initialize():
+    if request.method == 'POST':
+        db.create_all()
+
+    return jsonify({ "success": "true" })
 
 ## }}}

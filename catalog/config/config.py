@@ -26,6 +26,8 @@ class Config(object):
     TESTING = False
 
 class DevConfig(Config):
+    debug = "on"
+    environment = "dev"
     portno = 8123
     host = "127.0.0.1"
     storage = "./storage"

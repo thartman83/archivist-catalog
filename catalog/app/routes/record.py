@@ -22,25 +22,47 @@
 
 ### record ## {{{
 import base64, hashlib
+from datetime import datetime
 from flask import Blueprint, request, jsonify
-from ..models import Record
-from ...config import DevConfig
+from ..models.record import Record
+from ..models.dbbase import db
 
+storagePath = ""
 record_bp = Blueprint('record', __name__, url_prefix='/record')
-config = DevConfig()
 
-@recipe_bp.route('', methods=['POST'])
-def createRecipe():
-    data = request.json('data')
-    saveFileToStorage(data)
+@record_bp.route('', methods=['POST'])
+def createRecord():
+    json = request.get_json()
+    hash, path = saveFileToStorage(json['data'])
 
+    r = Record(name=json['name'],
+               location=path,
+               size=size(json['data']),
+               extension=json['extension'],
+               pagecount=json['pagecount'],
+               hash=hash.hexdigest())
+
+    db.session.add(r)
+    db.session.commit()
+    
+    return jsonify(r.serialize())
+
+@record_bp.route('/<id>', methods=['GET'])
+def getRecord(id):
+    r = Record.query.filter_by(id=id).first_or_404()
+
+    return jsonify(r.serialize())
 
 def saveFileToStorage(data):
-    decodedData = base64.decodebytes(data)
+    decodedData = base64.b64decode(data.encode('ascii'))
+
     hash = hashlib.md5(decodedData)
-    path = config.storage + "/" + hash
-    with open(path) as fh:
+    path = hash.hexdigest()
+    with open(path, 'wb+') as fh:
         fh.write(decodedData)
 
-    return hash, 
+    return hash, path
+
+def size(b64string):
+    return (len(b64string) * 3) / 4 - b64string.count('=', -2)
 ## }}}
