@@ -1,5 +1,5 @@
 ###############################################################################
-## record.py for catalog models module                                       ##
+## tag.py for catalog models module                                      ##
 ## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
@@ -16,38 +16,29 @@
 
 ### Commentary ## {{{
 ##
-## 
+## Tag model for catalog
 ##
 ## }}}
 
-### Record ## {{{
+### tag ## {{{
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from ..models.dbbase import db
-from ..models.tag import tags
 from .dbbase import DBBase
 
-class Record(DBBase):
-    name = db.Column(db.String(100), nullable=False)
-    extension = db.Column(db.String(100), nullable=False)
-    location = db.Column(db.String(250), nullable=False)
-    size = db.Column(db.Integer, nullable=False)
-    pagecount = db.Column(db.Integer, nullable=False)
-    hash = db.Column(db.String(64), nullable=False)
-    notes = db.Column(db.Text(length=1000))
-    tags = db.relationship('Tag', secondary=tags, lazy='query',
-                           backref=db.backref('records', lazy=True))
+class Tag(DBBase):
+    name = db.Column(db.String(20), nullable=False)
 
-    def serialize(self):
-        return { "id": self.id,
-                 "name": self.name,
-                 "extension": self.extension,
-                 "location": self.location,
-                 "size": self.size,
-                 "pagecount": self.pagecount,
-                 "hash": self.hash,
-                 "datecreate": self.datecreated,
-                 "datemodified": self.datemodified,
-                 "notes": self.notes }
+    def serialzie(self):
+        return
+        {
+            "name": self.name
+        }
 
+## Xref table
+tags = db.Table('tags',
+                db.Column(tag_id, db.Integer, db.ForeignKey('tag.id'),
+                          primary=True),
+                db.Column(record_id, db.Integer, db.ForeignKey('record.id'),
+                          primary=True))
 ## }}}

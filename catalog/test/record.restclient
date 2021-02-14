@@ -1,6 +1,7 @@
 # Initialize the database
 POST http://127.0.0.1:5000/init
 
+# Add a record
 POST http://127.0.0.1:5000/record
 Content-Type: application/json
 {
@@ -11,5 +12,5 @@ Content-Type: application/json
 }
 
 # Get a record
-GET http://127.0.0.1:5000/record/2
+GET http://127.0.0.1:5000/record/1
 Content-Type: application/json
