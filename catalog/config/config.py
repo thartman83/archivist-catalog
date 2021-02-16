@@ -26,9 +26,8 @@ class Config(object):
     TESTING = False
 
 class DevConfig(Config):
-    debug = "on"
-    environment = "dev"
-    portno = 8123
-    host = "127.0.0.1"
-    storage = "./storage"
+    DEBUG = True
+    TESTING = False
+    ENVIRONMENT = "DEV"
+    SQLALCHEMY_DATABASE_URI = "mysql://archivist:archivist@127.0.0.1/archivist"
 ## }}}
