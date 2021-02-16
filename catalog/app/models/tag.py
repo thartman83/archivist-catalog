@@ -1,6 +1,6 @@
 ###############################################################################
-## appfactory.py for descry                                                  ##
-## Copyright (c) 2020 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
+## tag.py for catalog models module                                      ##
+## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
 ## modify it under the terms of the GNU General Public License               ##
@@ -16,21 +16,29 @@
 
 ### Commentary ## {{{
 ##
-## 
+## Tag model for catalog
 ##
 ## }}}
 
-### appfactory ## {{{
+### tag ## {{{
 from flask import Flask
-from .routes.scanner import scanner_bp
-from .routes.scan import scan_bp
+from flask_sqlalchemy import SQLAlchemy
+from ..models.dbbase import db
+from .dbbase import DBBase
 
-def create_app(config):
-    app = Flask(__name__)
-    app.config.from_object(config)
+class Tag(DBBase):
+    name = db.Column(db.String(20), nullable=False)
 
-    app.register_blueprint(scanner_bp)
-    app.register_blueprint(scan_bp)
+    def serialzie(self):
+        return
+        {
+            "name": self.name
+        }
 
-    return app
+## Xref table
+tags = db.Table('tags',
+                db.Column(tag_id, db.Integer, db.ForeignKey('tag.id'),
+                          primary=True),
+                db.Column(record_id, db.Integer, db.ForeignKey('record.id'),
+                          primary=True))
 ## }}}

@@ -1,5 +1,5 @@
 ###############################################################################
-## run.py for descry                                                     ##
+## run.py for descry                                                         ##
 ## Copyright (c) 2020 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
@@ -27,4 +27,5 @@ from config.config import DevConfig
 if __name__ == "__main__":
     app = create_app(DevConfig)
     app.run(host="0.0.0.0")
+    
 ## }}}
