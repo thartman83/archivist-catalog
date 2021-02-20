@@ -22,4 +22,6 @@
 
 ### __init__ ## {{{
 
+from .config import TestConfig, DevConfig
+
 ## }}}

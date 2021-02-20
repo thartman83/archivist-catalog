@@ -32,6 +32,14 @@ tag_bp = Blueprint('tag',__name__, url_prefix='/tag')
 @tag_bp.route('',methods=['POST'])
 def createTag():
     json = request.get_json()
+
+    ## validate the request
+    if json is None or 'name' not in json:
+        return jsonify({
+            "status": "Invalid Request",
+            "msg": "Required field 'name' not found"
+            }), 400
+
     name = json['name']
 
     t = Tag.query.filter_by(name=name).first()
@@ -40,8 +48,8 @@ def createTag():
     if not t is None:
         return jsonify({
             "status": "error",
-            "msg": "Tag already exists"
-            })
+            "msg": "Tag '{}' already exists".format(name)
+            }), 400
     
     t = Tag(name=name)
     db.session.add(t)
@@ -57,8 +65,8 @@ def getTag(name):
     if t is None:
         return jsonify({
             "status": "error",
-            "message": "Tag '{}' does not exist".format(name)
-            })
+            "msg": "Tag '{}' does not exist".format(name)
+            }), 404
 
     return jsonify(t.serialize())
 
@@ -66,14 +74,20 @@ def getTag(name):
 @tag_bp.route('/<name>', methods=['PUT'])
 def renameTag(name):
     json = request.get_json()
-    new_name = json['new_name']
+    if json is None or 'new_name' not in json:
+        return jsonify({
+            'status': 'Invalid Request',
+            'msg': "Update tag request missing required field 'new_name'"
+            }), 400
+
+    new_name = json['new_name']        
 
     t = Tag.query.filter_by(name=name).first()
     if t is None:
         return jsonify( {
             "status": "error",
-            "msg": "Tag does not exist, can not rename"
-            })
+            "msg": "Tag {} does not exist".format(name)
+            }), 404
 
     t.name = new_name
     db.session.commit()
@@ -88,8 +102,8 @@ def deleteTag(name):
     if t is None:
         return jsonify( {
             "status": "error",
-            "msg": "Tag does not exist, can not delete"
-            })
+            "msg": "Tag '{}' does not exist".format(name)
+            }), 404
 
     db.session.delete(t)
     db.session.commit()

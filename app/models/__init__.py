@@ -20,3 +20,6 @@
 ##
 ## }}}
 
+from .tag import Tag
+from .record import Record
+from .dbbase import DBBase, db

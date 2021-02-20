@@ -22,4 +22,6 @@
 
 ### __init__ ## {{{
 
+from .appfactory import create_app
+
 ## }}}

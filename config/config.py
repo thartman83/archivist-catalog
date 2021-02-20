@@ -29,10 +29,18 @@ class DevConfig(Config):
     DEBUG = True
     TESTING = False
     ENVIRONMENT = "DEV"
+    SQLALCHEMY_DATABASE_URI="sqlite:///:memory:"
+    SQLALCHEMY_TRACK_MODIFICATIONS=False
 
 class TestConfig(Config):
     DEBUG = True
     TESTING = True
     ENVIRONMENT = "TEST"
+    SQLALCHEMY_DATABASE_URI="sqlite:///:memory:"
+    SQLALCHEMY_TRACK_MODIFICATIONS=False
+
+class ProdConfig(Config):
+    DEBUG = False
+    TESTING = False
     SQLALCHEMY_DATABASE_URI = "mysql://archivist:archivist@127.0.0.1/archivist"
 ## }}}
