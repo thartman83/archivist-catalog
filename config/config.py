@@ -29,5 +29,10 @@ class DevConfig(Config):
     DEBUG = True
     TESTING = False
     ENVIRONMENT = "DEV"
+
+class TestConfig(Config):
+    DEBUG = True
+    TESTING = True
+    ENVIRONMENT = "TEST"
     SQLALCHEMY_DATABASE_URI = "mysql://archivist:archivist@127.0.0.1/archivist"
 ## }}}

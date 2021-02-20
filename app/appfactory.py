@@ -26,6 +26,7 @@ from config.config import DevConfig
 from flask_sqlalchemy import SQLAlchemy
 from .routes.record import record_bp
 from .routes.initialize import init_bp
+from .routes.tag import tag_bp
 from .models.dbbase import db
 
 def create_app(config):
@@ -34,6 +35,7 @@ def create_app(config):
     db.init_app(app)
 
     app.register_blueprint(record_bp)
+    app.register_blueprint(tag_bp)
     app.register_blueprint(init_bp)
 
     return app

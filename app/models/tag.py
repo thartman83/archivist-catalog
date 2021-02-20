@@ -29,16 +29,13 @@ from .dbbase import DBBase
 class Tag(DBBase):
     name = db.Column(db.String(20), nullable=False)
 
-    def serialzie(self):
-        return
-        {
-            "name": self.name
-        }
+    def serialize(self):
+        return { "id": self.id,
+                 "name": self.name
+               }
 
 ## Xref table
-tags = db.Table('tags',
-                db.Column(tag_id, db.Integer, db.ForeignKey('tag.id'),
-                          primary=True),
-                db.Column(record_id, db.Integer, db.ForeignKey('record.id'),
-                          primary=True))
+# tags = db.Table('tags',
+#                 db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')),                          
+#                 db.Column('record_id', db.Integer, db.ForeignKey('record.id')))
 ## }}}
