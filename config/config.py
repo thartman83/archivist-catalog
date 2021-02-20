@@ -32,12 +32,16 @@ class DevConfig(Config):
     SQLALCHEMY_DATABASE_URI="sqlite:///:memory:"
     SQLALCHEMY_TRACK_MODIFICATIONS=False
 
+    STORAGE_LOCATION = 'storage/'
+
 class TestConfig(Config):
     DEBUG = True
     TESTING = True
     ENVIRONMENT = "TEST"
     SQLALCHEMY_DATABASE_URI="sqlite:///:memory:"
     SQLALCHEMY_TRACK_MODIFICATIONS=False
+
+    STORAGE_LOCATION = 'storage/'
 
 class ProdConfig(Config):
     DEBUG = False
