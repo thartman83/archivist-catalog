@@ -32,6 +32,7 @@ class DBBase(db.Model):
     __table_args__ = { "mysql_engine":"InnoDB" }
     id = db.Column(db.Integer, primary_key=True)
     datecreated = db.Column(db.DateTime, server_default=func.now())
-    datemodified = db.Column(db.DateTime, server_default=func.now())
+    datemodified = db.Column(db.DateTime, server_default=func.now(),
+                             onupdate=func.now())
 
 ## }}}

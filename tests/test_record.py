@@ -22,11 +22,13 @@
 
 ### test_record ## {{{
 import pytest, json
+from datetime import datetime
 from app.models import Record
 from app import create_app
 from config import TestConfig
 from app.models import db
 from pathlib import Path
+from time import sleep
 
 @pytest.fixture(scope='module')
 def test_client():
@@ -177,5 +179,94 @@ def test_get_record_by_id_invalid(test_client, init_db):
     assert resp.status_code == 404
     assert resp.json['status'] == 'Invalid record id'
     assert resp.json['msg'] == "Record id '{}' does not exist".format(recordid)
+
+def test_update_record(test_client, init_db):
+    """
+    GIVEN a catalog application
+    GIVEN a record of id 1 that exists
+    WHEN the /record/1 page is requested PUT
+    WHEN the PUT data contains a new name BRecord
+    THEN check that the response is valid
+    THEN check that the response contains the new name
+    THEN check that the modified data is greater than before the request    
+    """
+
+    recordid = 1
+    record = test_client.get('/record/{}'.format(recordid))
+    print(record.json)
+    orig_mod = datetime.strptime(record.json['datemodified'], '%Y-%m-%d %H:%M:%S')
+    data = { "name": "BRecord" }
+
+    # wait 1 second to make sure that the date modified is updated with the correct time
+    sleep(1)
+    resp = test_client.put('/record/{}'.format(recordid), json=data)
+    assert resp.status_code == 200
+    assert resp.json['name'] == 'BRecord'
+    new_mod = datetime.strptime(resp.json['datemodified'], '%Y-%m-%d %H:%M:%S')
+    assert new_mod > orig_mod
+
+def test_update_record_invalid(test_client, init_db):
+    """
+    GIVEN a catalog application
+    GIVEN a record of id 100 does not exists
+    WHEN the /record/100 page is requested PUT
+    WHEN the PUT data contains a new name BRecord
+    THEN check that the response is invalid 404
+    """
+
+    recordid = 100
+    data = { "name": "BRecord" }
+    
+    resp = test_client.put('/record/{}'.format(recordid), json=data)
+    assert resp.status_code == 404
+    assert resp.json['status'] == 'Invalid record id'
+    assert resp.json['msg'] == "Record id '{}' does not exist".format(recordid)
+
+def test_update_record_no_data(test_client, init_db):
+    """
+    GIVEN a catalog application
+    GIVEN a record of id 1 that exists
+    WHEN the /record/1 page is requested PUT
+    WHEN the PUT data contains no data
+    THEN check that the response is invalid 400
+    THEN check that the response contains an appropriate error message
+    """
+
+    recordid = 1
+    resp = test_client.put('/record/{}'.format(recordid))
+    assert resp.status_code == 400
+    assert resp.json['status'] == 'error'
+    assert resp.json['msg'] == "No data was provided to update record"
+
+def test_delete_record(test_client, init_db):
+    """
+    GIVEN a catalog application
+    GIVEN a record of id 1 exists
+    WHEN the /record/1 page is requested DELETE
+    THEN check that the response is valid
+    THEN check that the record no longer exists
+    """
+
+    recordid = 1
+    resp = test_client.delete('/record/{}'.format(recordid))
+    assert resp.status_code == 200
+    assert resp.json['status'] == 'success'
+    assert resp.json['msg'] == "Record '{}' was deleted".format(recordid)
+
+def test_delete_record(test_client, init_db):
+    """
+    GIVEN a catalog application
+    GIVEN a record of id 100 does not exist
+    WHEN the record /record/100 page is requested DELETE
+    THEN check that the response is invalid
+    THEN check that the response message is appropriate
+    """
+
+    recordid = 100
+    resp = test_client.delete('/record/{}'.format(recordid))
+    assert resp.status_code == 404
+    assert resp.json['status'] == 'Invalid record id'
+    assert resp.json['msg'] == "Record '{}' does not exist".format(recordid)
+                              
 
 ## }}}

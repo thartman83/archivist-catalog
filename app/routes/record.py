@@ -81,6 +81,42 @@ def getRecordByName(name):
 
     return jsonify(r.serialize())
 
+@record_bp.route('/<int:id>', methods=['PUT'])
+def updateRecord(id):
+    r = Record.query.filter_by(id=id).first()    
+
+    if r is None:
+        return jsonify({'status': 'Invalid record id',
+                        'msg': "Record id '{}' does not exist".format(id)}), 404
+
+    json = request.get_json()
+    if json is None:
+        return jsonify({'status': 'error',
+                        'msg': 'No data was provided to update record'}), 400
+    
+    if 'name' in json:
+        r.name = json['name']
+
+    if 'notes' in json:
+        r.notes = json['notes']
+
+    db.session.commit()
+    return jsonify(r.serialize())
+
+@record_bp.route('/<int:id>', methods=['DELETE'])
+def deleteRecord(id):
+    r = Record.query.filter_by(id=id).first()
+
+    if r is None:
+        return jsonify({'status': 'Invalid record id',
+                        'msg': "Record '{}' does not exist".format(id)}), 404
+
+    db.session.delete(r)
+    db.session.commit()
+
+    return jsonify({'status': 'success',
+                    'msg': "Record '{}' was deleted".format(id)})
+
 def saveFileToStorage(data):
     decodedData = base64.b64decode(data.encode('ascii'))
 

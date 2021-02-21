@@ -46,8 +46,8 @@ class Record(DBBase):
                  "size": self.size,
                  "pagecount": self.pagecount,
                  "hash": self.hash,
-                 "datecreate": self.datecreated,
-                 "datemodified": self.datemodified,
+                 "datecreate": self.datecreated.strftime('%Y-%m-%d %H:%M:%S'),
+                 "datemodified": self.datemodified.strftime('%Y-%m-%d %H:%M:%S'),
                  "notes": self.notes }
 
 ## }}}
