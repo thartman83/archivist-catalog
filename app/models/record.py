@@ -35,8 +35,8 @@ class Record(DBBase):
     pagecount = db.Column(db.Integer, nullable=False)
     hash = db.Column(db.String(64), nullable=False)
     notes = db.Column(db.Text(length=1000))
-#    tags = db.relationship('Tag', secondary='tags', lazy='query',
-#                           backref=db.backref('records', lazy=True))
+    tags = db.relationship('Tag', secondary='tags', lazy='subquery',
+                           backref=db.backref('records', lazy=True))
 
     def serialize(self):
         return { "id": self.id,
@@ -48,6 +48,8 @@ class Record(DBBase):
                  "hash": self.hash,
                  "datecreate": self.datecreated.strftime('%Y-%m-%d %H:%M:%S'),
                  "datemodified": self.datemodified.strftime('%Y-%m-%d %H:%M:%S'),
-                 "notes": self.notes }
+                 "notes": self.notes,
+                 "tags": list(map(lambda t: t.serialize(), self.tags))
+                 }
 
 ## }}}

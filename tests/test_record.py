@@ -71,6 +71,7 @@ def test_new_record(test_client, init_db):
 
     resp = test_client.post('/record', json=data)
     assert resp.status_code == 200
+    print(resp.json)
     assert resp.json['name'] == 'ARecord'
     assert resp.json['extension'] == 'pdf'
     assert resp.json['pagecount'] == 2

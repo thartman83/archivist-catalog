@@ -1,5 +1,5 @@
 ###############################################################################
-## tag.py for catalog models module                                      ##
+## status.py for catalog route module                                        ##
 ## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
@@ -16,34 +16,19 @@
 
 ### Commentary ## {{{
 ##
-## Tag model for catalog
+## Status page for the Archivist catalog microservice
 ##
 ## }}}
 
-### tag ## {{{
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from ..models.dbbase import db
-from .dbbase import DBBase
+### status ## {{{
+from flask import Flask, Blueprint, request, jsonify
 
-class Tag(DBBase):
-    name = db.Column(db.String(20), nullable=False)
+status_bp = Blueprint('status', __name__, url_prefix='/status')
 
-    def serialize(self):
-        return { "id": self.id,
-                 "name": self.name
-               }
+@status_bp.route('',methods=['GET'])
+def status():
+    return jsonify({
+        'up': True,
+        })
 
-    def findCreateTag(tagname):
-        t = Tag.query.filter_by(name=tagname).first()
-
-        if t is None:
-            return Tag(name=tagname)
-
-        return t
-        
-## Xref table
-tags = db.Table('tags',
-                 db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')),
-                 db.Column('record_id', db.Integer, db.ForeignKey('record.id')))
 ## }}}

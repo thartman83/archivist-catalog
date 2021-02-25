@@ -22,8 +22,7 @@
 
 ### tag ## {{{
 from flask import Blueprint, request, jsonify
-from ..models.tag import Tag
-from ..models.dbbase import db
+from ..models import Tag, Record, db
 
 # Create the tag route blueprint that will be used for all of the tag routes
 tag_bp = Blueprint('tag',__name__, url_prefix='/tag')
@@ -111,6 +110,20 @@ def deleteTag(name):
     return jsonify({
         "status": "success"
         })
-                       
+
+@tag_bp.route('/<name>/records', methods=['GET'])
+def getRecordsByTagName(name):
+    t = Tag.query.filter_by(name=name).first()
+
+    if t is None:
+        return jsonify(
+            {
+              'status': 'Invalid Tag',
+              'msg': "Tag '{}' does not exist".format(name)
+            }), 404
+
+    records = Record.query.filter(Record.tags.any(name=t.name)).all()
+    print(records)
+    return jsonify({ "records": list(map(lambda r: r.serialize(), records)) })
 
 ## }}}

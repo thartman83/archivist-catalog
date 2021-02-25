@@ -24,7 +24,7 @@
 import base64, hashlib
 from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
-from ..models.record import Record
+from ..models.record import Record, Tag
 from ..models.dbbase import db
 
 storagePath = ""
@@ -43,16 +43,24 @@ def createRecord():
     try: 
         hash, filesize, path = saveFileToStorage(json.pop('data',None))
     except Exception as e:
-        return jsonify({ 'status': 'error',
-                         'msg': 'An error occured while saving the record: {}'.format(e)
-                        }, 500)
+        return jsonify(
+            { 'status': 'error',
+               'msg': 'An error occured while saving the record: {}'.format(e)
+            }, 500)
 
     # Add caluclated and storage values, then add to the record dictionary
     json['location'] = path
     json['hash'] = hash.hexdigest()
     json['size'] = filesize
 
+    # pop the tags off (if they exist) and then create the record
+    tags = json.pop('tags',None)
+
     r = Record(**json)
+
+    if tags is not None:
+        for t in tags:
+            r.tags.append(Tag.findCreateTag(t))
 
     db.session.add(r)
     db.session.commit()
