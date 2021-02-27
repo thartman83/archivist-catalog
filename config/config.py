@@ -21,9 +21,27 @@
 ## }}}
 
 ### config ## {{{
+from enum import Enum
+
+class StorageLocations(Enum):
+    TEXT = 1
+    PAGES = 2
+    RECORD = 3
+
 class Config(object):
     DEBUG = False
     TESTING = False
+
+    # the length of subdir numerical length ie: length of 4 is 0001, 0002
+    SUBDIR_LENGTH = 4
+    # the limit of the number of files within a storage subfolder
+    MAX_SUBDIR_LIMIT = 500
+
+    SUBDIRS = {
+        StorageLocations.TEXT: "text",
+        StorageLocations.PAGES: "pages",
+        StorageLocations.RECORD: "records"
+    }
 
 class DevConfig(Config):
     DEBUG = True

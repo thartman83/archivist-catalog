@@ -1,5 +1,5 @@
 ###############################################################################
-## __init__.py for Catalog config module                                      ##
+## test_storage.py for the archivist catalog test suite                      ##
 ## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
@@ -16,12 +16,36 @@
 
 ### Commentary ## {{{
 ##
-## 
+## Test cases for storage common functions
 ##
 ## }}}
 
-### __init__ ## {{{
+### test_storage ## {{{
+import pytest, json
+from app.common import storage
+from app import create_app
+from config import TestConfig
+from pathlib import Path
 
-from .config import TestConfig, DevConfig, StorageLocations
+@pytest.fixture(scope='module')
+def test_client():
+    app = create_app(TestConfig)
 
+    client = app.test_client()
+    ctx = app.app_context()
+    ctx.push()
+
+    storage.initializeStorageDirs()
+
+    yield client
+
+    ctx.pop()
+
+def testStorageFoldersExist(test_client):
+    for loc in storage.StorageLocations:
+        p = Path(TestConfig['STORAGE_LOCATION']).joinpath(
+            TestConfig['SUBDIRS'][loca])
+
+        assert p.exists()
+    
 ## }}}

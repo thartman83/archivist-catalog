@@ -1,5 +1,5 @@
 ###############################################################################
-## __init__.py for Catalog config module                                      ##
+## __init__.py for common module for archivist catalog                        ##
 ## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
@@ -16,12 +16,10 @@
 
 ### Commentary ## {{{
 ##
-## 
+## Common module for archivist catalog
 ##
 ## }}}
 
 ### __init__ ## {{{
-
-from .config import TestConfig, DevConfig, StorageLocations
 
 ## }}}

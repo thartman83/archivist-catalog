@@ -66,7 +66,8 @@ def test_new_record(test_client, init_db):
         'extension': 'pdf',
         'pagecount': 2,
         'data': 'JVBERi0xLjcKCjEgMCBvYmogICUgZW50cnkgcG9pbnQKPDwKICAvVHlwZSAvQ2F0YWxvZwogIC9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKICAvVHlwZSAvUGFnZXMKICAvTWVkaWFCb3ggWyAwIDAgMjAwIDIwMCBdCiAgL0NvdW50IDEKICAvS2lkcyBbIDMgMCBSIF0KPj4KZW5kb2JqCgozIDAgb2JqCjw8CiAgL1R5cGUgL1BhZ2UKICAvUGFyZW50IDIgMCBSCiAgL1Jlc291cmNlcyA8PAogICAgL0ZvbnQgPDwKICAgICAgL0YxIDQgMCBSIAogICAgPj4KICA+PgogIC9Db250ZW50cyA1IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKICAvVHlwZSAvRm9udAogIC9TdWJ0eXBlIC9UeXBlMQogIC9CYXNlRm9udCAvVGltZXMtUm9tYW4KPj4KZW5kb2JqCgo1IDAgb2JqICAlIHBhZ2UgY29udGVudAo8PAogIC9MZW5ndGggNDQKPj4Kc3RyZWFtCkJUCjcwIDUwIFRECi9GMSAxMiBUZgooSGVsbG8sIHdvcmxkISkgVGoKRVQKZW5kc3RyZWFtCmVuZG9iagoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDEwIDAwMDAwIG4gCjAwMDAwMDAwNzkgMDAwMDAgbiAKMDAwMDAwMDE3MyAwMDAwMCBuIAowMDAwMDAwMzAxIDAwMDAwIG4gCjAwMDAwMDAzODAgMDAwMDAgbiAKdHJhaWxlcgo8PAogIC9TaXplIDYKICAvUm9vdCAxIDAgUgo+PgpzdGFydHhyZWYKNDkyCiUlRU9G',
-        'notes': 'This is a new record'
+        'notes': 'This is a new record',
+        'tags': ['tag1', 'tag2']
         }
 
     resp = test_client.post('/record', json=data)
@@ -268,6 +269,83 @@ def test_delete_record(test_client, init_db):
     assert resp.status_code == 404
     assert resp.json['status'] == 'Invalid record id'
     assert resp.json['msg'] == "Record '{}' does not exist".format(recordid)
-                              
 
+def test_get_record_tags(test_client, init_db):
+    """
+    GIVEN a catalog application
+    GIVEN a record of id 1 exists
+    GIVEN record 1 has tags 'tag1' and 'tag2'
+    WHEN the /record/1/tags is requested GET
+    THEN check that the response is valid
+    THEN check that the response has the tags 'tag1' and 'tag2'
+    """
+
+    recordid = 1
+    resp = test_client.get('/record/{}/tags'.format(recordid))
+    assert resp.status_code == 200
+    assert len(resp.json['tags']) == 2
+    assert 'tag1' in list(map(lambda t: t['name'], resp.json['tags']))
+    assert 'tag2' in list(map(lambda t: t['name'], resp.json['tags']))
+
+def test_add_record_tag(test_client, init_db):
+    """
+    GIVEN a catalog application
+    GIVEN a record of id 1 exist
+    GIVEN record 1 does not have tag3
+    WHEN the /record/1/tags is request POST
+    WHEN post data is [ 'tag3' ]
+    THEN check that the response is valid
+    THEN check that the record has the tag 'tag3'
+    """
+
+    test_client.post('/tag', json={ 'name': 'tag3' })
+    recordid = 1
+
+    data = { 'tags': ['tag3'] }
+    resp = test_client.post('/record/{}/tags'.format(recordid), json=data)
+    assert resp.status_code == 200
+
+    tags = test_client.get('/record/{}/tags'.format(recordid))
+    assert 'tag3' in list(map(lambda t: t['name'], tags.json['tags']))
+
+def test_update_record_tags(test_client, init_db):
+    """
+    GIVEN a catalog application
+    GIVEN a record of id 1 exist
+    GIVEN record 1 has tags 'tag1', 'tag2', 'tag3'
+    GIVEN tags 'tag4' and 'tag5' exists
+    WHEN the /record/1/tags is requested PUT
+    WHEN put data is [ 'tag4', 'tag5' ]
+    THEN check that the response is valid
+    THEN check that the record no longer has tags 'tag1', 'tag2'. 'tag3'
+    THEN check that the record has tags 'tag4' and 'tag5'
+    """
+
+    newtags = [ 'tag4', 'tag5' ]
+    oldtags = [ 'tag1', 'tag2', 'tag3' ]
+    map(lambda t: test_client.post('/tag', json={ 'name': t }), newtags)
+
+    recordid = 1
+    
+    data = { 'tags': newtags }
+    resp = test_client.put('/record/{}/tags'.format(recordid), json=data)
+    assert resp.status_code == 200
+
+    record = test_client.get('/record/{}/tags'.format(recordid))
+    assert record.status_code == 200
+    assert len(record.json['tags']) == len(newtags)
+    appliedtags = list(map(lambda t: t['name'], record.json['tags']))
+
+    for t in oldtags:
+        assert t not in appliedtags
+
+    for t in newtags:
+        assert t in appliedtags
+
+def test_create_record_with_pages(test_client, init_db):
+    """
+    
+    """
+
+                              
 ## }}}

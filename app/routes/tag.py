@@ -111,6 +111,7 @@ def deleteTag(name):
         "status": "success"
         })
 
+# Get all of the records based on a tag
 @tag_bp.route('/<name>/records', methods=['GET'])
 def getRecordsByTagName(name):
     t = Tag.query.filter_by(name=name).first()
@@ -123,7 +124,6 @@ def getRecordsByTagName(name):
             }), 404
 
     records = Record.query.filter(Record.tags.any(name=t.name)).all()
-    print(records)
     return jsonify({ "records": list(map(lambda r: r.serialize(), records)) })
 
 ## }}}

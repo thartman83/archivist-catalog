@@ -16,7 +16,7 @@
 
 ### Commentary ## {{{
 ##
-## 
+## The record model for the archivist catalog system
 ##
 ## }}}
 
@@ -25,6 +25,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from .dbbase import db
 from .tag import Tag
+from .page import Page
 from .dbbase import DBBase
 
 class Record(DBBase):
@@ -35,21 +36,26 @@ class Record(DBBase):
     pagecount = db.Column(db.Integer, nullable=False)
     hash = db.Column(db.String(64), nullable=False)
     notes = db.Column(db.Text(length=1000))
+
+    pages = db.relationship('Page')
+    
     tags = db.relationship('Tag', secondary='tags', lazy='subquery',
                            backref=db.backref('records', lazy=True))
 
     def serialize(self):
-        return { "id": self.id,
-                 "name": self.name,
-                 "extension": self.extension,
-                 "location": self.location,
-                 "size": self.size,
-                 "pagecount": self.pagecount,
-                 "hash": self.hash,
-                 "datecreate": self.datecreated.strftime('%Y-%m-%d %H:%M:%S'),
-                 "datemodified": self.datemodified.strftime('%Y-%m-%d %H:%M:%S'),
-                 "notes": self.notes,
-                 "tags": list(map(lambda t: t.serialize(), self.tags))
-                 }
+        return {
+            "id": self.id,
+            "name": self.name,
+            "extension": self.extension,
+            "location": self.location,
+            "size": self.size,
+            "pagecount": self.pagecount,
+            "hash": self.hash,
+            "datecreate": self.datecreated.strftime('%Y-%m-%d %H:%M:%S'),
+            "datemodified": self.datemodified.strftime('%Y-%m-%d %H:%M:%S'),
+            "notes": self.notes,
+            "pages": list(map(lambda p: p.erialize(), self.pages)),
+            "tags": list(map(lambda t: t.serialize(), self.tags))
+        }
 
 ## }}}

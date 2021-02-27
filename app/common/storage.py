@@ -1,5 +1,5 @@
 ###############################################################################
-## __init__.py for Catalog config module                                      ##
+## storage.py for storage functions for the common module                    ##
 ## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
@@ -16,12 +16,40 @@
 
 ### Commentary ## {{{
 ##
-## 
+## Storage functions for the archivist catalog
 ##
 ## }}}
 
-### __init__ ## {{{
+### storage ## {{{
 
-from .config import TestConfig, DevConfig, StorageLocations
+from flask import current_app
+from pathlib import Path
+from config import StorageLocations
+
+## Initialize the storage area
+def initializeStorageDirs():
+    cfg = current_app.config
+
+    # get the configuration specified storage root
+    p = Path(cfg['STORAGE_LOCATION'])
+
+    # Create the configuration based sub directories
+    for location in StorageLocations:
+        p.joinpath(cfg['SUBDIRS'][location]).mkdir()
+
+## 
+def storeObject(storageType, data, name):
+    cfg = current_app.config
+
+    storagePath = Path('{}/{}'.format(cfg['STORAGE_LOCATION'],
+                                      cfg[storageType]))
+    subdir = findSubDirStorageAvailable(storagePath, cfg)
+    
+##    num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
+
+## return the path within a storage path of the next available location
+## to store data
+def findSubDirStorageAvailable(storagePath, cfg):
+    blank
 
 ## }}}

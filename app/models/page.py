@@ -1,5 +1,5 @@
 ###############################################################################
-## __init__.py for Catalog config module                                      ##
+## page.py for archivist catalog models module                            ##
 ## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
 ## This program is free software; you can redistribute it and/or             ##
@@ -16,12 +16,33 @@
 
 ### Commentary ## {{{
 ##
-## 
+## Page model for the archivist catalog
 ##
 ## }}}
 
-### __init__ ## {{{
+### page ## {{{
 
-from .config import TestConfig, DevConfig, StorageLocations
+from .dbbase import DBBase, db
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+class Page(DBBase):
+    order = db.Column(db.Integer, nullable = False)
+    mimetype = db.Column(db.String(100), nullable=False)
+    location = db.Column(db.String(250), nullable=False)
+    size = db.Column(db.Integer, nullable = False)
+    hash = db.Column(db.String(64), nullable = False)
+    record_id = db.Column(db.Integer, db.ForeignKey('record.id'))
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'order': self.order,
+            'mimetype': self.mimetype,
+            'location': self.location,
+            'size': self.size,
+            'hash': self.hash,
+            'record_id': self.record_id
+        }
 
 ## }}}

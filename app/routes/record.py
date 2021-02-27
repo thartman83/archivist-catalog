@@ -125,6 +125,64 @@ def deleteRecord(id):
     return jsonify({'status': 'success',
                     'msg': "Record '{}' was deleted".format(id)})
 
+@record_bp.route('/<int:id>/tags', methods=['GET'])
+def getRecordTags(id):
+    r = Record.query.filter_by(id=id).first()
+
+    if r is None:
+        return jsonify({'status': 'Invalid record id',
+                        'msg': "Record '{}' does not exist".format(id)}), 404
+
+    return jsonify({ 'tags': list(map(lambda t: t.serialize(), r.tags)) })
+
+@record_bp.route('/<int:id>/tags', methods=['POST'])
+def addRecordTag(id):
+    r = Record.query.filter_by(id=id).first()
+
+    if r is None:
+        return jsonify({'status': 'Invalid record id',
+                        'msg': "Record '{}' does not exist".format(id)}), 404
+
+    json = request.get_json()
+    if json is None:
+        return jsonify({'status': 'error',
+                        'msg': 'No data was provided to update record tags'}), 400
+
+    tags = json['tags']
+    for t in tags:
+        r.tags.append(Tag.findCreateTag(t))
+
+    db.session.commit()
+
+    return jsonify({ 'status': 'success'})
+
+@record_bp.route('/<int:id>/tags', methods=['PUT'])
+def updateRecordTags(id):
+    r = Record.query.filter_by(id=id).first()
+
+    if r is None:
+        return jsonify({'status': 'Invalid record id',
+                        'msg': "Record '{}' does not exist".format(id)}), 404
+
+    json = request.get_json()
+    if json is None:
+        return jsonify({'status': 'error',
+                        'msg': 'No data was provided to update record tags'}), 400
+
+    r.tags.clear()
+
+    tags = []
+    for tagname in json['tags']:
+        tags.append(Tag.findCreateTag(tagname))
+
+    for t in tags:
+        r.tags.append(t)
+
+    db.session.commit()
+
+    return jsonify({ 'status': 'success' })
+
+###### Route helper functions
 def saveFileToStorage(data):
     decodedData = base64.b64decode(data.encode('ascii'))
 
@@ -135,9 +193,11 @@ def saveFileToStorage(data):
 
     return hash, size(data), path
 
+## Return the size in bytes of the base64 encoded file stream
 def size(b64string):
     return (len(b64string) * 3) / 4 - b64string.count('=', -2)
 
+### validate the record data recieved from 
 def validateRecordData(recordData):
     valid = True
     res = dict()
