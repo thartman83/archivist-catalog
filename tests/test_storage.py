@@ -26,6 +26,7 @@ from app.common import storage
 from app import create_app
 from config import TestConfig
 from pathlib import Path
+from shutil import rmtree
 
 @pytest.fixture(scope='module')
 def test_client():
@@ -35,17 +36,39 @@ def test_client():
     ctx = app.app_context()
     ctx.push()
 
-    storage.initializeStorageDirs()
+    test_storage = Path(TestConfig.STORAGE_LOCATION)
+    test_storage.mkdir()
+
+    try:
+        storage.initializeStorageDirs()
+    except Exception as e:        
+        print(e)
+        rmtree(str(test_storage))
+        ctx.pop()
+        raise    
 
     yield client
 
-    ctx.pop()
+    rmtree(str(test_storage))
+    ctx.pop()    
 
 def testStorageFoldersExist(test_client):
     for loc in storage.StorageLocations:
-        p = Path(TestConfig['STORAGE_LOCATION']).joinpath(
-            TestConfig['SUBDIRS'][loca])
+        p = Path(TestConfig.STORAGE_LOCATION).joinpath(
+            TestConfig.SUBDIRS[loc])
 
         assert p.exists()
+
+def testStoreObject(test_client):
+    assert False
+
+def testFindCreateSubDir(test_client):
+    """
+    GIVEN a archivist catalog application
+    GIVEN a storage location initialized
+    WHEN findCreateSubDir is called
+    WHEN parameters are RECORD
+    """
     
+    pass
 ## }}}

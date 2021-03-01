@@ -59,7 +59,7 @@ class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI="sqlite:///:memory:"
     SQLALCHEMY_TRACK_MODIFICATIONS=False
 
-    STORAGE_LOCATION = 'storage/'
+    STORAGE_LOCATION = 'test_storage/'
 
 class ProdConfig(Config):
     DEBUG = False

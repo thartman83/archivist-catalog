@@ -49,7 +49,8 @@ def storeObject(storageType, data, name):
 
 ## return the path within a storage path of the next available location
 ## to store data
-def findSubDirStorageAvailable(storagePath, cfg):
-    blank
+def findCreateSubDir(storagePath, cfg):
+    pass
+    
 
 ## }}}
