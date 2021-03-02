@@ -1,3 +1,5 @@
 *.pyc
 *.py~
 /venv/
+/config/#config.py#
+/config/.#config.py

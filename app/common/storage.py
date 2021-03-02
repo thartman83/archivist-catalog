@@ -41,16 +41,40 @@ def initializeStorageDirs():
 def storeObject(storageType, data, name):
     cfg = current_app.config
 
-    storagePath = Path('{}/{}'.format(cfg['STORAGE_LOCATION'],
-                                      cfg[storageType]))
-    subdir = findSubDirStorageAvailable(storagePath, cfg)
-    
-##    num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
+    dir = findCreateCurSubDir(storageType)
+    new_obj = dir.joinpath(name)
+    print(dir.exists())
+    new_obj.write_bytes(data)
+
+    return new_obj    
 
 ## return the path within a storage path of the next available location
 ## to store data
-def findCreateSubDir(storagePath, cfg):
-    pass
+def findCreateCurSubDir(storagePath):
+    cfg = current_app.config
     
+    rootPath = Path(cfg['STORAGE_LOCATION']).joinpath(cfg['SUBDIRS'][storagePath])
+
+    cur_int = len(list(rootPath.glob('*')))
+
+    ## Check to see if any directories exist
+    if cur_int == 0:
+        cur_int = 1
+        new_path = rootPath.joinpath(str(cur_int).zfill(cfg['SUBDIR_LENGTH']))
+        new_path.mkdir()
+
+        return new_path
+
+    cur_path = rootPath.joinpath(str(cur_int).zfill(cfg['SUBDIR_LENGTH']))
+    print(len(list(cur_path.glob('*'))))
+
+    if len(list(cur_path.glob('*'))) >= cfg['MAX_SUBDIR_LIMIT']:
+        next_int = cur_int + 1
+        next_path = rootPath.joinpath(str(next_int).zfill(cfg['SUBDIR_LENGTH']))
+        next_path.mkdir()
+        return next_path
+    else:
+        return cur_path
+        
 
 ## }}}

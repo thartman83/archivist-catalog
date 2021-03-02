@@ -26,6 +26,8 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
 from ..models.record import Record, Tag
 from ..models.dbbase import db
+from ..common import storage
+#from ..models import db, Record, Tag
 
 storagePath = ""
 record_bp = Blueprint('record', __name__, url_prefix='/record')
@@ -185,11 +187,10 @@ def updateRecordTags(id):
 ###### Route helper functions
 def saveFileToStorage(data):
     decodedData = base64.b64decode(data.encode('ascii'))
-
+    cfg = current_app.config
+    
     hash = hashlib.md5(decodedData)
-    path = current_app.config['STORAGE_LOCATION'] + hash.hexdigest()
-    with open(path, 'wb+') as fh:
-        fh.write(decodedData)
+    path = storage.storeObject(StorageLocation.RECORD, decodedDate, hash)
 
     return hash, size(data), path
 
