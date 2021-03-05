@@ -204,7 +204,7 @@ def validateRecordData(recordData):
     valid = True
     res = dict()
     invalidData = dict({ 'status': 'Invalid request', 'msg': [] })
-
+ 
     # check if there is any data at all
     if recordData is None:
         valid = False

@@ -51,7 +51,7 @@ def test_client():
     yield client
 
     rmtree(str(test_storage))
-    ctx.pop()    
+    ctx.pop()
 
 def testStorageFoldersExist(test_client):
     for loc in storage.StorageLocations:

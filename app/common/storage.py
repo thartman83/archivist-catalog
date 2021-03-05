@@ -43,7 +43,6 @@ def storeObject(storageType, data, name):
 
     dir = findCreateCurSubDir(storageType)
     new_obj = dir.joinpath(name)
-    print(dir.exists())
     new_obj.write_bytes(data)
 
     return new_obj    
@@ -66,7 +65,6 @@ def findCreateCurSubDir(storagePath):
         return new_path
 
     cur_path = rootPath.joinpath(str(cur_int).zfill(cfg['SUBDIR_LENGTH']))
-    print(len(list(cur_path.glob('*'))))
 
     if len(list(cur_path.glob('*'))) >= cfg['MAX_SUBDIR_LIMIT']:
         next_int = cur_int + 1

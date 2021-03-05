@@ -23,11 +23,10 @@
 ### test_record ## {{{
 import pytest, json
 from datetime import datetime
-from app.models import Record
+from app.models import Record, db
 from app.common import storage
 from app import create_app
 from config import TestConfig
-from app.models import db
 from pathlib import Path
 from time import sleep
 from shutil import rmtree
