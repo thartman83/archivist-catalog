@@ -24,11 +24,13 @@
 import pytest, json
 from datetime import datetime
 from app.models import Record
+from app.common import storage
 from app import create_app
 from config import TestConfig
 from app.models import db
 from pathlib import Path
 from time import sleep
+from shutil import rmtree
 
 @pytest.fixture(scope='module')
 def test_client():
@@ -37,9 +39,21 @@ def test_client():
     client = app.test_client()
     ctx = app.app_context()
     ctx.push()
+
+    test_storage = Path(TestConfig.STORAGE_LOCATION)
+    test_storage.mkdir()
+
+    try:
+        storage.initializeStorageDirs()
+    except Exception as e:        
+        print(e)
+        rmtree(str(test_storage))
+        ctx.pop()
+        raise
     
     yield client
-    
+
+    rmtree(str(test_storage))
     ctx.pop()
 
 @pytest.fixture(scope='module')
@@ -78,7 +92,10 @@ def test_new_record(test_client, init_db):
     assert resp.json['pagecount'] == 2
     assert resp.json['notes'] == 'This is a new record'
     assert resp.json['hash'] == 'bcd0fc693cc6e5f6bbcd753e1932f18c'
-    assert resp.json['location'] == TestConfig.STORAGE_LOCATION + resp.json['hash']
+
+    recordDir = storage.StorageLocations.RECORD
+    p = storage.findCreateCurSubDir(recordDir).joinpath(resp.json['hash'])
+    assert resp.json['location'] == str(p)
 
     assert Path(resp.json['location']).exists()
 
@@ -125,7 +142,10 @@ def test_get_record_by_name(test_client, init_db):
     assert resp.json['name'] == 'ARecord'
     assert resp.json['extension'] == 'pdf'
     assert resp.json['pagecount'] == 2
-    assert resp.json['location'] == TestConfig.STORAGE_LOCATION + resp.json['hash']
+
+    recordDir = storage.StorageLocations.RECORD
+    p = storage.findCreateCurSubDir(recordDir).joinpath(resp.json['hash'])
+    assert resp.json['location'] == str(p)
     assert resp.json['notes'] == 'This is a new record'
     assert resp.json['hash'] == 'bcd0fc693cc6e5f6bbcd753e1932f18c'
     assert resp.json['datecreate'] is not None
@@ -161,7 +181,10 @@ def test_get_record_by_id(test_client, init_db):
     assert resp.json['name'] == 'ARecord'
     assert resp.json['extension'] == 'pdf'
     assert resp.json['pagecount'] == 2
-    assert resp.json['location'] == TestConfig.STORAGE_LOCATION + resp.json['hash']
+
+    recordDir = storage.StorageLocations.RECORD
+    p = storage.findCreateCurSubDir(recordDir).joinpath(resp.json['hash'])
+    assert resp.json['location'] == str(p)
     assert resp.json['notes'] == 'This is a new record'
     assert resp.json['hash'] == 'bcd0fc693cc6e5f6bbcd753e1932f18c'
     assert resp.json['datecreate'] is not None

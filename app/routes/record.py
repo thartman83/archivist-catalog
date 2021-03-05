@@ -51,7 +51,7 @@ def createRecord():
             }, 500)
 
     # Add caluclated and storage values, then add to the record dictionary
-    json['location'] = path
+    json['location'] = str(path)
     json['hash'] = hash.hexdigest()
     json['size'] = filesize
 
@@ -190,7 +190,8 @@ def saveFileToStorage(data):
     cfg = current_app.config
     
     hash = hashlib.md5(decodedData)
-    path = storage.storeObject(StorageLocation.RECORD, decodedDate, hash)
+    path = storage.storeObject(storage.StorageLocations.RECORD,
+                               decodedData, hash.hexdigest())
 
     return hash, size(data), path
 
