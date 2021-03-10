@@ -21,7 +21,7 @@
 ## }}}
 
 ### test_record ## {{{
-import pytest, json, base64
+import pytest, json, base64, hashlib
 from datetime import datetime
 from app.models import Record, db
 from app.common import storage
@@ -374,18 +374,37 @@ def test_update_record_tags(test_client, init_db):
     for t in newtags:
         assert t in appliedtags
 
-def test_create_record_with_pages(test_client, init_db):
+def test_getRecordPages(test_client, init_db):
     """
     GIVEN a catalog application
-    WHEN /record is requested POST
-    WHEN POST data is a new record with page data
+    WHEN /record/1/pages is requested GET
+    WHEN record 1 exists
     THEN check that the response is valid
-    THEN check that the record is created
-    THEN check that the page records are created
+    THEN check that the page records are available
     THEN check that the page records are valid in the db
     """
 
+    recordid = 1
+    resp = test_client.get('/record/{}/pages'.format(recordid))
+    pageDir = storage.StorageLocations.PAGES
+    pageImgRoot = storage.findCreateCurSubDir(pageDir).joinpath(checksum + '_{}')
     
+    assert resp.status_code == 200
+    assert len(resp.json['pages']) == 2
+    
+    for p in resp.json['pages']:
+        assert p['order'] == 1
+        assert p['mimetype'] == 'image/tiff'
+        assert p['location'] == pageImgRoot.format(p['order'])
+        assert p['recordid'] == 1
+
+        testPath = Path('tests/data/SampleImages-{}.tif'.format(p['order']))
+        with open(str(testPath)) as f:
+            hash = hashlib.md5(f.read())
+            size = testPath.stat().st_size
+
+            assert p['hash'] == hash
+            assert p['size'] == size
 
                               
 ## }}}
