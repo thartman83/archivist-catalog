@@ -6,3 +6,6 @@ pytest-cov==2.11.1
 python-dotenv==0.13.0
 Flask-SQLAlchemy==2.4.4
 mysqlclient==2.0.3
+python-magic==0.4.22
+PyPDF2==1.26.0
+pdf2image==1.14.0
