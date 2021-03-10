@@ -51,7 +51,8 @@ def test_pdfPaginate():
     GIVEN a PDFMime object
     WHEN the textify method is invoke
     WHEN the parameter passed is a valid pdf file path
-    THEN the textify function will return the text of the pdf
+    THEN the paginate function will return the pages of the pdf
+         as PIL images
     """
 
     pdfMime = MrMime["application/pdf"]

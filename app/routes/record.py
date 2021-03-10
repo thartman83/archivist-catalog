@@ -16,7 +16,7 @@
 
 ### Commentary ## {{{
 ##
-## 
+## Routes for records for the archivist REST api
 ##
 ## }}}
 
@@ -24,10 +24,10 @@
 import base64, hashlib
 from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
-from ..models.record import Record, Tag
+from ..models.record import Record, Tag, Page
 from ..models.dbbase import db
 from ..common import storage
-#from ..models import db, Record, Tag
+from magic import Magic
 
 storagePath = ""
 record_bp = Blueprint('record', __name__, url_prefix='/record')
@@ -58,7 +58,16 @@ def createRecord():
     # pop the tags off (if they exist) and then create the record
     tags = json.pop('tags',None)
 
+    # pop the pages off if they exist and then create the pages
+    pages = json.pop('pages', None)
+
+    # Create the record
     r = Record(**json)
+
+    # Check for pages
+    if pages is not None:
+        for p in pages:
+            r.pages.append(createPage(p))
 
     if tags is not None:
         for t in tags:
@@ -227,6 +236,20 @@ def validateRecordData(recordData):
         invalidData['msg'].append("Missing required argument 'extension'")
 
     return valid, invalidData
-                  
+
+## Create a page for a record
+def createPage(pageData):
+    pageNumber = pageData['order']
+    decodedData = base64.b64decode(pageData['data'].encode('ascii'))
+    
+#    hash = hashlib.md5(decodedData)
+    path = storage.storeObject(storage.StorageLocations.PAGES,
+                               decodedData, hash)
+    with open(path) as f:
+        hash = hashlib.md5(f.read())
+    
+    mimetype = Magic(str(path))
+    return Page(pageNumber, mimetype, str(path), size(data),
+                hash.hexdigest())
     
 ## }}}

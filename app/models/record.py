@@ -23,10 +23,9 @@
 ### Record ## {{{
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from .dbbase import db
+from .dbbase import db, DBBase
 from .tag import Tag
 from .page import Page
-from .dbbase import DBBase
 
 class Record(DBBase):
     name = db.Column(db.String(100), nullable=False)
@@ -54,7 +53,7 @@ class Record(DBBase):
             "datecreate": self.datecreated.strftime('%Y-%m-%d %H:%M:%S'),
             "datemodified": self.datemodified.strftime('%Y-%m-%d %H:%M:%S'),
             "notes": self.notes,
-            "pages": list(map(lambda p: p.erialize(), self.pages)),
+            "pages": list(map(lambda p: p.serialize(), self.pages)),
             "tags": list(map(lambda t: t.serialize(), self.tags))
         }
 

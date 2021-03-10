@@ -21,7 +21,7 @@
 ## }}}
 
 ### test_record ## {{{
-import pytest, json
+import pytest, json, base64
 from datetime import datetime
 from app.models import Record, db
 from app.common import storage
@@ -30,6 +30,8 @@ from config import TestConfig
 from pathlib import Path
 from time import sleep
 from shutil import rmtree
+
+checksum = '2ee20486d3b51eed3f850139af55c7ea'
 
 @pytest.fixture(scope='module')
 def test_client():
@@ -63,8 +65,25 @@ def init_db():
     
     db.drop_all()
 
+@pytest.fixture(scope='module')
+def record_data():
 
-def test_new_record(test_client, init_db):
+    with open('tests/data/SamplePDF.pdf', 'rb') as pdf:
+        pdfbase64 = base64.b64encode(pdf.read())
+        
+    record_data = {
+        'name': 'ARecord',
+        'extension': 'pdf',
+        'pagecount': 2,
+        'data': pdfbase64.decode('ascii'),
+        'notes': 'This is a new record',
+        'tags': ['tag1', 'tag2']
+        }
+
+    yield record_data
+    
+
+def test_new_record(test_client, init_db, record_data):
     """
     GIVEN a catalog application
     WHEN the /record page is requested POST
@@ -74,23 +93,14 @@ def test_new_record(test_client, init_db):
     THEN check that the record data is saved to the application storage directory
     """
 
-    data = {
-        'name': 'ARecord',
-        'extension': 'pdf',
-        'pagecount': 2,
-        'data': 'JVBERi0xLjcKCjEgMCBvYmogICUgZW50cnkgcG9pbnQKPDwKICAvVHlwZSAvQ2F0YWxvZwogIC9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKICAvVHlwZSAvUGFnZXMKICAvTWVkaWFCb3ggWyAwIDAgMjAwIDIwMCBdCiAgL0NvdW50IDEKICAvS2lkcyBbIDMgMCBSIF0KPj4KZW5kb2JqCgozIDAgb2JqCjw8CiAgL1R5cGUgL1BhZ2UKICAvUGFyZW50IDIgMCBSCiAgL1Jlc291cmNlcyA8PAogICAgL0ZvbnQgPDwKICAgICAgL0YxIDQgMCBSIAogICAgPj4KICA+PgogIC9Db250ZW50cyA1IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKICAvVHlwZSAvRm9udAogIC9TdWJ0eXBlIC9UeXBlMQogIC9CYXNlRm9udCAvVGltZXMtUm9tYW4KPj4KZW5kb2JqCgo1IDAgb2JqICAlIHBhZ2UgY29udGVudAo8PAogIC9MZW5ndGggNDQKPj4Kc3RyZWFtCkJUCjcwIDUwIFRECi9GMSAxMiBUZgooSGVsbG8sIHdvcmxkISkgVGoKRVQKZW5kc3RyZWFtCmVuZG9iagoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDEwIDAwMDAwIG4gCjAwMDAwMDAwNzkgMDAwMDAgbiAKMDAwMDAwMDE3MyAwMDAwMCBuIAowMDAwMDAwMzAxIDAwMDAwIG4gCjAwMDAwMDAzODAgMDAwMDAgbiAKdHJhaWxlcgo8PAogIC9TaXplIDYKICAvUm9vdCAxIDAgUgo+PgpzdGFydHhyZWYKNDkyCiUlRU9G',
-        'notes': 'This is a new record',
-        'tags': ['tag1', 'tag2']
-        }
-
-    resp = test_client.post('/record', json=data)
+    resp = test_client.post('/record', json=record_data)
     assert resp.status_code == 200
     print(resp.json)
     assert resp.json['name'] == 'ARecord'
     assert resp.json['extension'] == 'pdf'
     assert resp.json['pagecount'] == 2
     assert resp.json['notes'] == 'This is a new record'
-    assert resp.json['hash'] == 'bcd0fc693cc6e5f6bbcd753e1932f18c'
+    assert resp.json['hash'] == checksum
 
     recordDir = storage.StorageLocations.RECORD
     p = storage.findCreateCurSubDir(recordDir).joinpath(resp.json['hash'])
@@ -146,7 +156,7 @@ def test_get_record_by_name(test_client, init_db):
     p = storage.findCreateCurSubDir(recordDir).joinpath(resp.json['hash'])
     assert resp.json['location'] == str(p)
     assert resp.json['notes'] == 'This is a new record'
-    assert resp.json['hash'] == 'bcd0fc693cc6e5f6bbcd753e1932f18c'
+    assert resp.json['hash'] == checksum
     assert resp.json['datecreate'] is not None
     assert resp.json['datemodified'] is not None
 
@@ -185,7 +195,7 @@ def test_get_record_by_id(test_client, init_db):
     p = storage.findCreateCurSubDir(recordDir).joinpath(resp.json['hash'])
     assert resp.json['location'] == str(p)
     assert resp.json['notes'] == 'This is a new record'
-    assert resp.json['hash'] == 'bcd0fc693cc6e5f6bbcd753e1932f18c'
+    assert resp.json['hash'] == checksum
     assert resp.json['datecreate'] is not None
     assert resp.json['datemodified'] is not None
 
@@ -366,8 +376,16 @@ def test_update_record_tags(test_client, init_db):
 
 def test_create_record_with_pages(test_client, init_db):
     """
-    
+    GIVEN a catalog application
+    WHEN /record is requested POST
+    WHEN POST data is a new record with page data
+    THEN check that the response is valid
+    THEN check that the record is created
+    THEN check that the page records are created
+    THEN check that the page records are valid in the db
     """
+
+    
 
                               
 ## }}}
