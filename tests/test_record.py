@@ -386,25 +386,27 @@ def test_getRecordPages(test_client, init_db):
 
     recordid = 1
     resp = test_client.get('/record/{}/pages'.format(recordid))
-    pageDir = storage.StorageLocations.PAGES
-    pageImgRoot = storage.findCreateCurSubDir(pageDir).joinpath(checksum + '_{}')
+    pageDir = storage.findCreateCurSubDir(storage.StorageLocations.PAGES)
+    pageFmt = checksum + '_{}'
     
     assert resp.status_code == 200
+    print(resp.json)
+    
     assert len(resp.json['pages']) == 2
     
-    for p in resp.json['pages']:
-        assert p['order'] == 1
+    for idx, p in enumerate(resp.json['pages']):
+        assert p['order'] == idx + 1
         assert p['mimetype'] == 'image/tiff'
-        assert p['location'] == pageImgRoot.format(p['order'])
-        assert p['recordid'] == 1
+        assert p['location'] == str(pageDir.joinpath(pageFmt.format(p['order'])))
+        assert p['record_id'] == 1
 
         testPath = Path('tests/data/SampleImages-{}.tif'.format(p['order']))
-        with open(str(testPath)) as f:
-            hash = hashlib.md5(f.read())
+        with open(str(testPath),'rb') as f:
             size = testPath.stat().st_size
+            hash = hashlib.md5(f.read())
 
-            assert p['hash'] == hash
             assert p['size'] == size
+            assert p['hash'] == hash.hexdigest()
 
                               
 ## }}}

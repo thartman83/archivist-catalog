@@ -1,4 +1,4 @@
-###############################################################################
+##############################################################################
 ## record.py for catalog routes package                                      ##
 ## Copyright (c) 2021 Tom Hartman (thomas.lees.hartman@gmail.com)            ##
 ##                                                                           ##
@@ -26,8 +26,9 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
 from ..models.record import Record, Tag, Page
 from ..models.dbbase import db
-from ..common import storage
+from ..common import storage, mrmime
 from magic import Magic
+from io import BytesIO
 
 storagePath = ""
 record_bp = Blueprint('record', __name__, url_prefix='/record')
@@ -58,16 +59,16 @@ def createRecord():
     # pop the tags off (if they exist) and then create the record
     tags = json.pop('tags',None)
 
-    # pop the pages off if they exist and then create the pages
-    pages = json.pop('pages', None)
-
     # Create the record
     r = Record(**json)
 
+    mimeParser = mrmime.MrMime['application/pdf']
+    pages = mimeParser.paginate(str(path))
+    
     # Check for pages
     if pages is not None:
-        for p in pages:
-            r.pages.append(createPage(p))
+        for idx,p in enumerate(pages):
+            r.pages.append(createPage(p,hash.hexdigest(),idx+1))
 
     if tags is not None:
         for t in tags:
@@ -193,6 +194,19 @@ def updateRecordTags(id):
 
     return jsonify({ 'status': 'success' })
 
+@record_bp.route('/<int:id>/pages', methods=['GET'])
+def getRecordPages(id):
+    pages = Page.query.filter_by(record_id=id)
+
+    if pages is None:
+        return jsonify(
+            {
+             'status': 'Invalid Record',
+             'msg': 'Record {} does not exist'.format(id)
+             }), 404
+
+    return jsonify({ "pages": list(map(lambda p: p.serialize(), pages)) })
+
 ###### Route helper functions
 def saveFileToStorage(data):
     decodedData = base64.b64decode(data.encode('ascii'))
@@ -238,18 +252,24 @@ def validateRecordData(recordData):
     return valid, invalidData
 
 ## Create a page for a record
-def createPage(pageData):
-    pageNumber = pageData['order']
-    decodedData = base64.b64decode(pageData['data'].encode('ascii'))
+def createPage(page, base_name, order):
+    buf = BytesIO()
+
+    length_x, width_y = page.size
+    factor = min(1, float(1024.0 / length_x))
+    size = int(factor * length_x), int(factor * width_y)
+    page_resized = page.resize(size)
+
+    page_resized.save(buf, 'TIFF', compression='tiff_deflate', dpi=(300,300))
     
-#    hash = hashlib.md5(decodedData)
     path = storage.storeObject(storage.StorageLocations.PAGES,
-                               decodedData, hash)
-    with open(path) as f:
+                               buf.getvalue(), base_name + '_' + str(order))
+    
+    with open(str(path),'rb') as f:
         hash = hashlib.md5(f.read())
     
-    mimetype = Magic(str(path))
-    return Page(pageNumber, mimetype, str(path), size(data),
-                hash.hexdigest())
+    mimetype = 'image/tiff'
+    return Page(order=order, mimetype=mimetype, location=str(path),
+                size=buf.getbuffer().nbytes,hash=hash.hexdigest())
     
 ## }}}
