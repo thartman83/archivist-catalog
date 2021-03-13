@@ -59,10 +59,19 @@ def createRecord():
     # pop the tags off (if they exist) and then create the record
     tags = json.pop('tags',None)
 
+    # Setup the mime parsing engine
+    mimeParser = mrmime.MrMime['application/pdf']
+
+    # text of the record
+    text = mimeParser.textify(str(path))
+    textPath = createTextRecord(text.encode(), hash.hexdigest())
+    print(str(textPath))
+    json['textlocation'] = str(textPath)
+
     # Create the record
     r = Record(**json)
 
-    mimeParser = mrmime.MrMime['application/pdf']
+    # pages of the record
     pages = mimeParser.paginate(str(path))
     
     # Check for pages
@@ -70,10 +79,12 @@ def createRecord():
         for idx,p in enumerate(pages):
             r.pages.append(createPage(p,hash.hexdigest(),idx+1))
 
+    # add some tags
     if tags is not None:
         for t in tags:
             r.tags.append(Tag.findCreateTag(t))
 
+    # finally commit the session
     db.session.add(r)
     db.session.commit()
     
@@ -196,16 +207,54 @@ def updateRecordTags(id):
 
 @record_bp.route('/<int:id>/pages', methods=['GET'])
 def getRecordPages(id):
+    record = Record.query.filter_by(id=id).first()
     pages = Page.query.filter_by(record_id=id)
 
-    if pages is None:
+    if record is None:
         return jsonify(
             {
-             'status': 'Invalid Record',
+             'status': 'error',
              'msg': 'Record {} does not exist'.format(id)
              }), 404
 
     return jsonify({ "pages": list(map(lambda p: p.serialize(), pages)) })
+
+@record_bp.route('/<int:id>/pages/<int:pageid>', methods=['GET'])
+def getRecordPage(id, pageid):
+    record = Record.query.filter_by(id=id).first()
+    page = Page.query.filter_by(record_id=id, order=pageid).first()
+
+    if record is None:
+        return jsonify(
+            {
+             'status': 'error',
+             'msg': 'Record {} does not exist'.format(id)
+             }), 404
+
+    if page is None:
+        return jsonify(
+            {
+             'status': 'error',
+             'msg': 'Page {} does not exist for record {}'.format(id, pageid)
+             }), 404
+
+    return jsonify({ 'page': page.serialize() })
+
+@record_bp.route('/<int:id>/text', methods=['GET'])
+def getRecordText(id):
+    record = Record.query.filter_by(id=id).first()
+
+    if record is None:
+        return jsonify(
+            {
+             'status': 'error',
+             'msg': 'Record {} does not exist'.format(id)
+             }), 404
+
+    with open(record.textlocation, 'r') as f:
+        text = f.read()
+
+    return jsonify({ 'text': text })
 
 ###### Route helper functions
 def saveFileToStorage(data):
@@ -271,5 +320,10 @@ def createPage(page, base_name, order):
     mimetype = 'image/tiff'
     return Page(order=order, mimetype=mimetype, location=str(path),
                 size=buf.getbuffer().nbytes,hash=hash.hexdigest())
+
+def createTextRecord(text, name):
+    path = storage.storeObject(storage.StorageLocations.TEXT, text, name)
+
+    return path
     
 ## }}}

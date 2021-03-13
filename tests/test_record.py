@@ -390,7 +390,6 @@ def test_getRecordPages(test_client, init_db):
     pageFmt = checksum + '_{}'
     
     assert resp.status_code == 200
-    print(resp.json)
     
     assert len(resp.json['pages']) == 2
     
@@ -408,5 +407,93 @@ def test_getRecordPages(test_client, init_db):
             assert p['size'] == size
             assert p['hash'] == hash.hexdigest()
 
+def test_getRecordPagesInvalidRecord(test_client, init_db):
+    """
+    GIVEN a catalog application
+    WHEN /record/1/pages is requested GET
+    WHEN record 67 does not exist
+    THEN check that the response is 404
+    THEN check that the error message is valid
+    """
+
+    recordid = 67
+    resp = test_client.get('/record/{}/pages'.format(recordid))
+
+    assert resp.status_code == 404
+        
+    assert resp.json['status'] == 'error'
+    assert resp.json['msg'] == 'Record {} does not exist'.format(recordid)
+
+def test_getRecordSinglePage(test_client, init_db):
+    """
+    GIVEN a catalog application
+    WHEN record/1/pages/1 is requested GET
+    WHEN record 1 exists
+    THEN check the respone is 200
+    THEN check that the page data is correct
+    """
+
+    recordid = 1
+    pageid = 1
+    resp = test_client.get('/record/{}/pages/{}'.format(recordid, pageid))
+
+    pageDir = storage.findCreateCurSubDir(storage.StorageLocations.PAGES)
+    pageName = checksum + '_1'
+
+    print(resp.json)
+    assert resp.status_code == 200
+
+    testPath = Path('tests/data/SampleImages-1.tif')
+    assert resp.json['page']['order'] == 1
+    assert resp.json['page']['mimetype'] == 'image/tiff'
+    assert resp.json['page']['location'] == str(pageDir.joinpath(pageName))
+    assert resp.json['page']['record_id'] == 1
+    
+    with open(str(testPath), 'rb') as f:
+        size = testPath.stat().st_size
+        hash = hashlib.md5(f.read())
+
+        assert resp.json['page']['size'] == size
+        assert resp.json['page']['hash'] == hash.hexdigest()
+
+def test_getRecordPagesInvalidPage(test_client, init_db):
+    """
+    GIVEN a catalog application
+    WHEN /record/1/pages/6 is requested GET
+    WHEN record 1 does exist
+    WHEN page 6 does not exist
+    THEN check that the response is 404
+    THEN check that the error message is valid
+    """
+
+    recordid = 1
+    pageid = 6
+    resp = test_client.get('/record/{}/pages/{}'.format(recordid,pageid))
+
+    assert resp.status_code == 404
+        
+    assert resp.json['status'] == 'error'
+    assert resp.json['msg'] == 'Page {} does not exist for record {}'.format(
+        recordid, pageid)
+
+def test_getRecordText(test_client, init_db):
+    """
+    GIVEN a catalog application
+    WHEN /record/1/text is requested GET
+    WHEN record 1 exists
+    THEN check that the response is valid
+    THEN check that the text records are available
+    THEN check that the text records are valid in the db
+    """
+
+    recordid = 1
+    resp = test_client.get('/record/{}/text'.format(recordid))
+
+    txtDataPath = Path('tests/data/SamplePDF.txt')
+    with open(str(txtDataPath), 'r') as f:
+        txtData = f.read()
+
+    assert resp.status_code == 200
+    assert resp.json['text'] == txtData
                               
 ## }}}

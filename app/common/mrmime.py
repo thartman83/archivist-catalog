@@ -48,21 +48,6 @@ class PDFMime(MimeBase):
     def paginate(self, filePath):
         imgs = convert_from_path(filePath)
 
-        # pdf = open(str(filePath), 'rb')
-
-        # reader = PyPDF2.PdfFileReader(pdf)
-        # imgs = []
-        
-        # for page in reader.pages:
-        #     pdfOut = PyPDF2.PdfFileWriter()
-        #     pdfOut.addPage(page)
-            
-        #     pdfBytes = io.BytesIO()            
-        #     pdfOut.write(pdfBytes)
-        #     pdfBytes.seek(0)
-        #     img = Image.open(pdfBytes)
-        #     imgs.append(img)
-
         return imgs
 
 def docMime(MimeBase):

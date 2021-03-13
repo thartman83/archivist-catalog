@@ -31,6 +31,7 @@ class Record(DBBase):
     name = db.Column(db.String(100), nullable=False)
     extension = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(250), nullable=False)
+    textlocation = db.Column(db.String(250), nullable=False)
     size = db.Column(db.Integer, nullable=False)
     pagecount = db.Column(db.Integer, nullable=False)
     hash = db.Column(db.String(64), nullable=False)
@@ -47,6 +48,7 @@ class Record(DBBase):
             "name": self.name,
             "extension": self.extension,
             "location": self.location,
+            "textlocation": self.textlocation,
             "size": self.size,
             "pagecount": self.pagecount,
             "hash": self.hash,
