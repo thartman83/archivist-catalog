@@ -21,7 +21,7 @@
 ## }}}
 
 ### test_record ## {{{
-import pytest, json, base64, hashlib
+import pytest, json, base64, hashlib, string
 from datetime import datetime
 from app.models import Record, db
 from app.common import storage
@@ -494,6 +494,6 @@ def test_getRecordText(test_client, init_db):
         txtData = f.read()
 
     assert resp.status_code == 200
-    assert resp.json['text'] == txtData
-                              
+    remove = txtData.maketrans('','',string.whitespace + string.punctuation)
+    assert resp.json['text'].translate(remove) == txtData.translate(remove)
 ## }}}
