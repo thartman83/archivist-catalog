@@ -24,6 +24,7 @@
 
 from app.common.mrmime import MrMime
 from PIL import Image, ImageChops
+import string
 
 def test_pdfTextify():
     """
@@ -43,8 +44,29 @@ def test_pdfTextify():
     with open(textFile, 'r') as file:
         expectedText = file.read()
 
-    assert textified == expectedText
+    remove = expectedText.maketrans('','',string.whitespace + string.punctuation)
+    assert textified.translate(remove) == expectedText.translate(remove)
+
+def test_pdfTextifyOCR():
+    """
+    GIVEN a PDFMime object
+    WHEN the textify method is invoke
+    WHEN the parameter passed is a valid pdf file path with image data
+    THEN the textify function will return the text of the pdf
+    """
     
+    pdfMime = MrMime["application/pdf"]
+    pdfFile = "tests/data/SampleScan.pdf"
+    textFile = "tests/data/SampleText.txt"
+    
+    textified = pdfMime.textify(pdfFile)
+    expectedText = ""
+
+    with open(textFile, 'r') as file:
+        expectedText = file.read()
+
+    remove = expectedText.maketrans('','',string.whitespace + string.punctuation)
+    assert textified.translate(remove) == expectedText.translate(remove)
 
 def test_pdfPaginate():
     """

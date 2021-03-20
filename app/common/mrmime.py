@@ -21,11 +21,11 @@
 ## }}}
 
 ### mrmime ## {{{
-import PyPDF2
+import PyPDF4
 from pathlib import Path
 from PIL import Image
 from pdf2image import convert_from_path
-import io
+import io, pytesseract
 
 class MimeBase(object):
 
@@ -37,12 +37,22 @@ class PDFMime(MimeBase):
     def textify(self, filePath):
         pdf = open(str(filePath), 'rb')
 
-        reader = PyPDF2.PdfFileReader(pdf)
+        reader = PyPDF4.PdfFileReader(pdf)
         text = ""
 
+        # Extract any text in the document
         for page in reader.pages:
             text += page.extractText()
 
+        # Check to see if there are images that need to be OCR'd
+        for page in reader.pages:
+            if '/XObject' in page['/Resources']:
+                xobjs = page['/Resources']['/XObject'].getObject()
+                for obj in xobjs:
+                    if xobjs[obj]['/Subtype'] == '/Image':
+                        img = Image.open(io.BytesIO(xobjs[obj].getData()))
+                        text = text + pytesseract.image_to_string(img)
+         
         return text
 
     def paginate(self, filePath):
