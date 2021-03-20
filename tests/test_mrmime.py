@@ -24,6 +24,7 @@
 
 from app.common.mrmime import MrMime
 from PIL import Image, ImageChops
+from fuzzy_match import match, algorithims
 import string
 
 def test_pdfTextify():
@@ -66,7 +67,9 @@ def test_pdfTextifyOCR():
         expectedText = file.read()
 
     remove = expectedText.maketrans('','',string.whitespace + string.punctuation)
-    assert textified.translate(remove) == expectedText.translate(remove)
+    val = algorithims.trigram(textified.translate(remove),
+                             expectedText.translate(remove))
+    assert val >= .9
 
 def test_pdfPaginate():
     """
