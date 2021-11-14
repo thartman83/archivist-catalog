@@ -1,0 +1,7 @@
+#+TITLE: Archivist Catalog
+#+AUTHOR: Tom Hartman
+
+The archivist catalog is a micro-service for interacting with
+documents, images, tags, and other objects within the archivist
+system. The service connects to a database to facilitate the
+organization and management of these objects.
