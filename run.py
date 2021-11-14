@@ -19,12 +19,23 @@
 ## Catalog is the record keeping container for the archivist system
 ##
 ## }}}
+import os
 from app.appfactory import create_app
-from config.config import DevConfig
+from config import config
 
 ### run ## {{{
 if __name__ == "__main__":
-    app = create_app(DevConfig())
-    app.run(port=8000)
+    config_type = os.environ.get('CONFIG')
+    dbengine = os.environ.get('DBENGINE')
+    log = open('log.txt', 'w')
+
+    print("Building app", file=log)
+    if dbengine == 'mysql':
+        print("Using mysql", file=log)
+        app = create_app(config.MySqlConfig)
+    else:
+        app = create_app(config.DevConfig())
+        
+    app.run(port=os.environ.get('PORT'), host='0.0.0.0')
         
 ## }}}

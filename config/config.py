@@ -21,6 +21,7 @@
 ## }}}
 
 ### config ## {{{
+import os
 from enum import Enum
 
 class StorageLocations(Enum):
@@ -51,6 +52,15 @@ class DevConfig(Config):
     SQLALCHEMY_TRACK_MODIFICATIONS=False
 
     STORAGE_LOCATION = 'storage/'
+
+class MySqlConfig(Config):
+    DEBUG = True
+    TESTING = False
+    ENVIRONMENT = "DEV"
+    SQLALCHEMY_DATABASE_URI="mysql://%s:%s@%s/%s" % (os.environ.get('MYSQL_USER'),
+                                                     os.environ.get('MYSQL_PASSWORD'),
+                                                     os.environ.get('MYSQL_HOST'),
+                                                     os.environ.get('MYSQL_DATABASE'))
 
 class TestConfig(Config):
     DEBUG = True

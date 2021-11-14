@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+   db:
+     image: mysql:5.7
+     volumes:
+       - db_data:/var/lib/mysql
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: rootarchivist
+       MYSQL_DATABASE: archivist
+       MYSQL_USER: archivist
+       MYSQL_PASSWORD: archivist
+     networks:
+       catalog_net:
+         ipv4_address: 172.20.1.1
+     ports:
+       - "3306:3306"       
+   catalog:
+     build:
+       context: .
+       dockerfile: Dockerfile
+     networks:
+       catalog_net:
+         ipv4_address: 172.20.1.2
+     environment:
+       CONFIG: docker
+       DBENGINE: mysql
+       MYSQL_HOST: 172.20.1.1
+       MYSQL_DATABASE: archivist
+       MYSQL_USER: archivist
+       MYSQL_PASSWORD: archivist
+       PORT: 8000
+     ports:
+       - "8000:8000"
+
+networks:
+  catalog_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  db_data:

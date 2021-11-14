@@ -21,14 +21,38 @@
 ## }}}
 
 ### status ## {{{
+import os
 from flask import Flask, Blueprint, request, jsonify
+from ..models.dbbase import db
 
 status_bp = Blueprint('status', __name__, url_prefix='/status')
 
 @status_bp.route('',methods=['GET'])
 def status():
+    engine = db.get_engine()
     return jsonify({
         'up': True,
+        'environment': {
+            'dbhost': os.environ.get('MYSQL_HOST'),
+            'database': os.environ.get('MYSQL_DATABASE'),
+            'dbengine': os.environ.get('DBENGINE'),
+            'dbuser': os.environ.get('MYSQL_USER')
+            
+        },
+        'database': {
+            'engine': {
+                'dialect': engine.dialect.name,
+                'table_names': engine.table_names()
+                },
+            'config': {
+                'database': engine.url.database,
+                'driver': engine.url.drivername,
+                'host': engine.url.host,
+                'port': engine.url.port,
+                'username': engine.url.username
+                },
+            'initialized': (len(engine.table_names()) != 0)
+            }        
         })
 
 ## }}}

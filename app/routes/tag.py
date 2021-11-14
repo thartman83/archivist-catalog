@@ -69,6 +69,12 @@ def getTag(name):
 
     return jsonify(t.serialize())
 
+@tag_bp.route('/', methods=['GET'])
+def getAllTags():
+    tags = Tag.query.all()
+
+    return jsonify(list(map(lambda t: t.serialize(), tags)))
+
 # U stands for update
 @tag_bp.route('/<name>', methods=['PUT'])
 def renameTag(name):
