@@ -36,8 +36,8 @@ def status():
             'dbhost': os.environ.get('MYSQL_HOST'),
             'database': os.environ.get('MYSQL_DATABASE'),
             'dbengine': os.environ.get('DBENGINE'),
-            'dbuser': os.environ.get('MYSQL_USER')
-            
+            'dbuser': os.environ.get('MYSQL_USER'),
+            'storage_location': os.environ.get('STORAGE_LOCATION')
         },
         'database': {
             'engine': {

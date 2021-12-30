@@ -81,7 +81,22 @@ def record_data():
         }
 
     yield record_data
-    
+
+@pytest.fixture(scope='module')
+def preprocessRecord_data():    
+    with open('tests/data/SamplePDF.pdf', 'rb') as pdf:
+        pdfbase64 = base64.b64encode(pdf.read())
+        
+    preprocessRecord_data = {
+        'name': 'ARecord',
+        'extension': 'pdf',
+        'pagecount': 2,
+        'data': pdfbase64.decode('ascii'),
+        'notes': 'This is a new record',
+        'tags': ['tag1', 'tag2']
+        }
+
+    yield preprocessRecord_data
 
 def test_new_record(test_client, init_db, record_data):
     """
@@ -402,10 +417,11 @@ def test_getRecordPages(test_client, init_db):
         testPath = Path('tests/data/SampleImages-{}.tif'.format(p['order']))
         with open(str(testPath),'rb') as f:
             size = testPath.stat().st_size
-            hash = hashlib.md5(f.read())
+            hashValue = hashlib.md5(f.read())
 
             assert p['size'] == size
-##            assert p['hash'] == hash.hexdigest()
+            assert p['hash'] == hashValue.hexdigest()
+        print('index is {}'.format(idx))
 
 def test_getRecordPagesInvalidRecord(test_client, init_db):
     """
@@ -496,4 +512,35 @@ def test_getRecordText(test_client, init_db):
     assert resp.status_code == 200
     remove = txtData.maketrans('','',string.whitespace + string.punctuation)
     assert resp.json['text'].translate(remove) == txtData.translate(remove)
+
+
+def test_preprocessRecord(test_client, init_db, preprocessRecord_data):
+    """
+     GIVEN a catalog application
+    WHEN /record/preprocess is requested POST
+    THEN check that the response is valid
+    THEN check that the text of the document is returned
+    THEN check that the images of pages of the document are returned as date
+    """
+    resp = test_client.post('/record/preprocess', json=preprocessRecord_data)
+    assert resp.status_code == 200
+    assert resp.json['pagecount'] == 2
+    assert len(resp.json['pages']) == 2
+
+    txtDataPath = Path('tests/data/SamplePDF.txt')
+    with open(str(txtDataPath), 'r') as f:
+        txtData = f.read()
+
+    remove = txtData.maketrans('','',string.whitespace + string.punctuation)
+    assert resp.json['text'].translate(remove) == txtData.translate(remove)
+
+    for page in resp.json['pages']:
+        print(page)
+        idx = page['order']
+        testPath = Path('tests/data/SampleImages-{}.tif'.format(idx))
+        with open(str(testPath),'rb') as f:
+            hashValue = hashlib.md5(f.read())
+            assert page['hash'] == hashValue.hexdigest()
+
+
 ## }}}

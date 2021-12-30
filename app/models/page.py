@@ -31,7 +31,7 @@ class Page(DBBase):
     mimetype = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(250), nullable=False)
     size = db.Column(db.Integer, nullable = False)
-    hash = db.Column(db.String(64), nullable = False)
+    hashValue = db.Column(db.String(64), nullable = False)
     record_id = db.Column(db.Integer, db.ForeignKey('record.id'))
 
     def serialize(self):
@@ -41,7 +41,7 @@ class Page(DBBase):
             'mimetype': self.mimetype,
             'location': self.location,
             'size': self.size,
-            'hash': self.hash,
+            'hash': self.hashValue,
             'record_id': self.record_id
         }
 

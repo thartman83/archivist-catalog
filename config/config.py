@@ -61,6 +61,7 @@ class MySqlConfig(Config):
                                                      os.environ.get('MYSQL_PASSWORD'),
                                                      os.environ.get('MYSQL_HOST'),
                                                      os.environ.get('MYSQL_DATABASE'))
+    STORAGE_LOCATION = os.environ.get('STORAGE_LOCATION')
 
 class TestConfig(Config):
     DEBUG = True

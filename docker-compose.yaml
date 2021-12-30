@@ -4,7 +4,7 @@ services:
    db:
      image: mysql:5.7
      volumes:
-       - db_data:/var/lib/mysql
+       - db_data:/var/lib/mysql    
      restart: always
      environment:
        MYSQL_ROOT_PASSWORD: rootarchivist
@@ -17,6 +17,8 @@ services:
      ports:
        - "3306:3306"       
    catalog:
+     volumes:
+       - storage:/mnt/persistant
      build:
        context: .
        dockerfile: Dockerfile
@@ -30,6 +32,7 @@ services:
        MYSQL_DATABASE: archivist
        MYSQL_USER: archivist
        MYSQL_PASSWORD: archivist
+       STORAGE_LOCATION: /mnt/persistant
        PORT: 8000
      ports:
        - "8000:8000"
@@ -43,3 +46,4 @@ networks:
 
 volumes:
   db_data:
+  storage:

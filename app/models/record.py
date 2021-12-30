@@ -23,6 +23,7 @@
 ### Record ## {{{
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+import base64
 from .dbbase import db, DBBase
 from .tag import Tag
 from .page import Page
@@ -34,7 +35,7 @@ class Record(DBBase):
     textlocation = db.Column(db.String(250), nullable=False)
     size = db.Column(db.Integer, nullable=False)
     pagecount = db.Column(db.Integer, nullable=False)
-    hash = db.Column(db.String(64), nullable=False)
+    hashValue = db.Column(db.String(64), nullable=False)
     notes = db.Column(db.Text(length=1000))
 
     pages = db.relationship('Page')
@@ -43,15 +44,19 @@ class Record(DBBase):
                            backref=db.backref('records', lazy=True))
 
     def serialize(self):
+        with open(self.location,'rb') as f:
+            data = base64.b64encode(f.read())
+            
         return {
             "id": self.id,
             "name": self.name,
             "extension": self.extension,
             "location": self.location,
+            "data": data.decode('ascii'),
             "textlocation": self.textlocation,
             "size": self.size,
             "pagecount": self.pagecount,
-            "hash": self.hash,
+            "hash": self.hashValue,
             "datecreate": self.datecreated.strftime('%Y-%m-%d %H:%M:%S'),
             "datemodified": self.datemodified.strftime('%Y-%m-%d %H:%M:%S'),
             "notes": self.notes,

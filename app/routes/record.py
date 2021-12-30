@@ -30,6 +30,8 @@ from ..common import storage, mrmime
 from magic import Magic
 from io import BytesIO
 
+from pathlib import Path
+
 storagePath = ""
 record_bp = Blueprint('record', __name__, url_prefix='/record')
 
@@ -44,7 +46,7 @@ def createRecord():
 
     # Save the record data to the storage system
     try: 
-        hash, filesize, path = saveFileToStorage(json.pop('data',None))
+        hashStr, filesize, path = saveFileToStorage(json.pop('data',None))
     except Exception as e:
         return jsonify(
             { 'status': 'error',
@@ -53,7 +55,7 @@ def createRecord():
 
     # Add caluclated and storage values, then add to the record dictionary
     json['location'] = str(path)
-    json['hash'] = hash.hexdigest()
+    json['hashValue'] = hashStr.hexdigest()
     json['size'] = filesize
 
     # pop the tags off (if they exist) and then create the record
@@ -64,7 +66,7 @@ def createRecord():
 
     # text of the record
     text = mimeParser.textify(str(path))
-    textPath = createTextRecord(text.encode(), hash.hexdigest())
+    textPath = createTextRecord(text.encode(), hashStr.hexdigest())
     print(str(textPath))
     json['textlocation'] = str(textPath)
 
@@ -77,7 +79,7 @@ def createRecord():
     # Check for pages
     if pages is not None:
         for idx,p in enumerate(pages):
-            r.pages.append(createPage(p,hash.hexdigest(),idx+1))
+            r.pages.append(createPage(p,hashStr.hexdigest(),idx+1))
 
     # add some tags
     if tags is not None:
@@ -256,16 +258,62 @@ def getRecordText(id):
 
     return jsonify({ 'text': text })
 
+# This function is similar to the create record route except it does everything but commit the
+# record into the catelog
+@record_bp.route('/preprocess', methods=['POST'])
+def preprocessRecord():
+    json = request.get_json()
+
+    ## Validate the record data and metadata
+    valid, res = validateRecordData(json)
+    if not valid:
+        return jsonify(res), 400
+
+    # Grab the data sent to the endpoint
+    base64bytes = json.pop('data')
+    data = base64.b64decode(base64bytes.encode('ascii'))
+
+    # pop the tags off (if they exist) and then create the record
+    tags = json.pop('tags',None)
+
+    # Setup the mime parsing engine
+    mimeParser = mrmime.MrMime['application/pdf']
+
+    res = {}
+    # text of the record
+    text = mimeParser.textifyData(data)
+    res['text'] = text
+    res['textlocation'] = None
+    res['hash'] = hashlib.md5(data).hexdigest()
+    
+    # pages of the record
+    pages = mimeParser.paginateData(data)
+
+    res['pagecount'] = len(pages)
+    res['pages'] = []
+    
+    if pages is not None:
+        for idx,p in enumerate(pages):
+            page = createPageNoSave(p, "", idx+1)
+            res['pages'].append(page)
+            
+
+    # Normally the record function will add the datecreated and datemodified fields
+    res['datecreated'] = datetime.now()
+    res['datemodified'] = datetime.now()
+
+    return jsonify(res)
+
 ###### Route helper functions
 def saveFileToStorage(data):
     decodedData = base64.b64decode(data.encode('ascii'))
     cfg = current_app.config
     
-    hash = hashlib.md5(decodedData)
+    hashStr = hashlib.md5(decodedData)
     path = storage.storeObject(storage.StorageLocations.RECORD,
-                               decodedData, hash.hexdigest())
+                               decodedData, hashStr.hexdigest())
 
-    return hash, size(data), path
+    return hashStr, size(data), path
 
 ## Return the size in bytes of the base64 encoded file stream
 def size(b64string):
@@ -313,17 +361,50 @@ def createPage(page, base_name, order):
     
     path = storage.storeObject(storage.StorageLocations.PAGES,
                                buf.getvalue(), base_name + '_' + str(order))
-    
+
+    hashValue = hashlib.md5()
     with open(str(path),'rb') as f:
-        hash = hashlib.md5(f.read())
+        hashValue.update(f.read())
     
     mimetype = 'image/tiff'
     return Page(order=order, mimetype=mimetype, location=str(path),
-                size=buf.getbuffer().nbytes,hash=hash.hexdigest())
+                size=buf.getbuffer().nbytes,hashValue=hashValue.hexdigest())
+
+def createPageNoSave(page, base_name, order):
+    buf = BytesIO()
+
+    length_x, width_y = page.size
+    factor = min(1, float(1024.0 / length_x))
+    size = int(factor * length_x), int(factor * width_y)
+    page_resized = page.resize(size)
+
+    page_resized.save(buf, 'TIFF', compression='tiff_deflate', dpi=(300,300))    
+    
+    mimetype = 'image/tiff'
+    page = {}
+    page['id'] = None
+    page['order'] = order
+    page['mimetype'] = mimetype
+    page['location'] = None
+    page['size'] = buf.getbuffer().nbytes
+    page['hash'] = hashBuffer(buf)
+    page['record_id'] = None
+    page['data'] = base64.b64encode(buf.getbuffer()).decode('ascii')
+    
+    return page
 
 def createTextRecord(text, name):
     path = storage.storeObject(storage.StorageLocations.TEXT, text, name)
 
     return path
+
+def hashBuffer(buf):
+    md5 = hashlib.md5()
+    BLOCK_SIZE = 65536
+
+    buf.getvalue()  
+    md5 = hashlib.md5(buf.getvalue())
+    return md5.hexdigest()
+        
     
 ## }}}

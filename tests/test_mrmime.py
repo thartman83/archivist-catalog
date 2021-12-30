@@ -71,6 +71,29 @@ def test_pdfTextifyOCR():
                              expectedText.translate(remove))
     assert val >= .9
 
+def test_pdfTextifyDataOCR():
+    """
+    GIVEN a PDFMime object
+    WHEN the textifyData method is invoke
+    WHEN the parameter passed is a valid pdf file path with image data
+    THEN the textify function will return the text of the pdf
+    """
+
+    pdfMime = MrMime["application/pdf"]
+    pdfFileData = open("tests/data/SampleScan.pdf",'rb').read()
+    textFile = "tests/data/SampleText.txt"
+    
+    textified = pdfMime.textifyData(pdfFileData)
+    expectedText = ""
+
+    with open(textFile, 'r') as file:
+        expectedText = file.read()
+
+    remove = expectedText.maketrans('','',string.whitespace + string.punctuation)
+    val = algorithims.trigram(textified.translate(remove),
+                             expectedText.translate(remove))
+    assert val >= .9
+
 def test_pdfPaginate():
     """
     GIVEN a PDFMime object
@@ -94,4 +117,24 @@ def test_pdfPaginate():
         assert diff.getbbox()
         idx = idx + 1
 
+def test_pdfPaginateData():
+    """ GIVEN A PDFMime object
+    WHEN the paginateData method is invoked
+    WHEN the parameter passed is a valid pdf bytes
+    THEN the paginateDate function will return the pages of the pdf as
+         PIL images
+    """
+
+    pdfMime = MrMime["application/pdf"];
+    pdfFileData = open("tests/data/SamplePDF.pdf",'rb').read()
+    imgFileBase = "tests/data/SampleImages-{}.tif"
+
+    pages = pdfMime.paginateData(pdfFileData)
+    idx = 1
+    for p in pages:
+        imgPath = imgFileBase.format(idx)
+        diff = ImageChops.difference(p, Image.open(imgPath))
+        assert diff.getbbox();
+        idx = idx + 1    
+    
 ## }}}

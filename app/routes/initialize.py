@@ -23,6 +23,7 @@
 ### initialize ## {{{
 
 from ..models.dbbase import db
+from ..common import storage
 from flask import Blueprint, jsonify, request
 
 init_bp = Blueprint('init', __name__, url_prefix='/init')
@@ -31,6 +32,7 @@ init_bp = Blueprint('init', __name__, url_prefix='/init')
 def initialize():
     if request.method == 'POST':
         db.create_all()
+        storage.initializeStorageDirs()
 
     return jsonify({ "success": "true" })
 

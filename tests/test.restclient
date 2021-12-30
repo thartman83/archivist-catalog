@@ -4,31 +4,31 @@
 POST http://172.20.1.2:8000/init
 
 # Create a new tag
-POST http://0.0.0.0:8000/tag
+POST http://172.20.1.2:8000/tag
 Content-Type: application/json
 {
 	"name": "tag1"
 }
 
 # Get a tag
-GET http://0.0.0.0:5000/tag/tag1
+GET http://172.20.1.2:5000/tag/tag1
 Content-Type: application/json
 
 # Get a tag
-GET http://0.0.0.0:5000/tag/tag2
+GET http://172.20.1.2:5000/tag/tag2
 Content-Type: application/json
 
 # Rename the tag
-PUT http://0.0.0.0:8000/tag/tag1
+PUT http://172.20.1.2:8000/tag/tag1
 Content-Type: application/json
 {
 	"new_name": "tag2"
 }
 
 # Get the new tag
-GET http://0.0.0.0:5000/tag/tag2
+GET http://172.20.1.2:5000/tag/tag2
 Content-Type: application/json
 
 # Delete the tag
-DELETE http://0.0.0.0:5000/tag/tag1
+DELETE http://172.20.1.2:5000/tag/tag1
 Content-Type: application/json
