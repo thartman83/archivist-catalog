@@ -22,6 +22,7 @@
 
 ### appfactory ## {{{
 from flask import Flask
+from flask_cors import CORS
 from config.config import DevConfig
 from flask_sqlalchemy import SQLAlchemy
 from .routes.record import record_bp
@@ -40,6 +41,9 @@ def create_app(config):
     app.register_blueprint(init_bp)
     app.register_blueprint(status_bp)
 
+    # Add CORS allow cross origin
+    CORS(app)
+    
     return app
 
 # @app.cli.command()
