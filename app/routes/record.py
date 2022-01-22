@@ -65,10 +65,14 @@ def createRecord():
     mimeParser = mrmime.MrMime['application/pdf']
 
     # text of the record
-    text = mimeParser.textify(str(path))
-    textPath = createTextRecord(text.encode(), hashStr.hexdigest())
-    print(str(textPath))
-    json['textlocation'] = str(textPath)
+    text = ""
+    try:
+        text = mimeParser.textify(str(path))        
+    except Exception as e:
+        text = "Archivist Error: An Error Occured while extracting text from the record"
+    finally:
+        textPath = createTextRecord(text.encode(), hashStr.hexdigest())        
+        json['textlocation'] = str(textPath)
 
     # Create the record
     r = Record(**json)
