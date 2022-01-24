@@ -25,6 +25,9 @@
 from .dbbase import DBBase, db
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from PIL import Image
+import io
+import base64
 
 class Page(DBBase):
     order = db.Column(db.Integer, nullable = False)
@@ -35,6 +38,12 @@ class Page(DBBase):
     record_id = db.Column(db.Integer, db.ForeignKey('record.id'))
 
     def serialize(self):
+        
+        with Image.open(self.location,'r') as img:
+            buf = io.BytesIO()
+            img.save(buf, format='PNG')
+            data = base64.b64encode(buf.getvalue())
+        
         return {
             'id': self.id,
             'order': self.order,
@@ -42,7 +51,8 @@ class Page(DBBase):
             'location': self.location,
             'size': self.size,
             'hash': self.hashValue,
-            'record_id': self.record_id
+            'record_id': self.record_id,
+            'data': data.decode('ascii')
         }
 
 ## }}}
